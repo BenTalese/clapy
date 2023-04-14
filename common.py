@@ -9,7 +9,31 @@ FILE_EXCLUSIONS = [r".*__init__\.py", r".*outputport\.py", r".*output_port\.py"]
 
 
 @staticmethod
-def import_class_by_namespace(namespace: str):
+def import_class_by_namespace(namespace: str) -> type:
+    '''Imports the first class matching the module by name under the provided namespace.
+    
+    Parameters
+    ----------
+    `namespace` A string that represents the fully qualified name of a Python module.
+    It is used to dynamically import and retrieve a class object from the specified module.
+    
+    Exceptions
+    -------
+    Raises an exception if the class cannot be found.
+
+    Returns
+    -------
+    The class object corresponding to the namespace passed as an argument.
+
+    Example
+    -------
+    `example_to_demonstrate.py`  (module)\n
+        | -- `OtherClassA`\n
+        | -- `ExampleToDemonstrate`    (class to be imported)\n
+        | -- `OtherClassB`\n
+        | -- `OtherClassC`\n
+    
+    '''
     _ModuleName = "".join([part.lower() for part in namespace.rsplit(".", 1)[1].split("_")])
     _Module = importlib.import_module(namespace, package=None)
     _ModuleClasses = inspect.getmembers(_Module, inspect.isclass)
@@ -25,5 +49,23 @@ def import_class_by_namespace(namespace: str):
 
 @staticmethod
 def apply_exclusion_filter(collection: List[str], exclusion_patterns: List[str]) -> None:
+    '''Applies RegEx exclusion patterns to a collection of strings and removes any
+    items that match those patterns.
+    
+    Parameters
+    ----------
+    `collection` A list of strings that represents the collection of items that need
+    to be filtered.\n
+    `exclusion_patterns` A list of regular expression patterns that should be used to exclude
+    certain items from the collection.
+
+    Example
+    -------
+    my_collection = ["a", "b", "c", "d"]\n
+    exclusion_patterns = ["b", "d"]\n
+    MyClass.apply_exclusion_filter(my_collection, exclusion_patterns)\n
+    print(my_collection)  # Output: ["a", "c"]
+    
+    '''
     for _ExclusionPattern in exclusion_patterns:
         collection[:] = [_Item for _Item in collection if not re.match(_ExclusionPattern, _Item)]
