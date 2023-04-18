@@ -10,7 +10,10 @@ FILE_EXCLUSIONS = [r".*__init__\.py", r".*outputport\.py", r".*output_port\.py"]
 
 @staticmethod
 def import_class_by_namespace(namespace: str) -> type:
-    '''Imports the first class matching the module by name under the provided namespace.
+    '''
+    Summary
+    -------
+    Imports the first class matching the module by name under the provided namespace.
     
     Parameters
     ----------
@@ -49,7 +52,10 @@ def import_class_by_namespace(namespace: str) -> type:
 
 @staticmethod
 def apply_exclusion_filter(collection: List[str], exclusion_patterns: List[str]) -> None:
-    '''Applies RegEx exclusion patterns to a collection of strings and removes any
+    '''
+    Summary
+    -------
+    Applies RegEx exclusion patterns to a collection of strings and removes any
     items that match those patterns.
     
     Parameters
