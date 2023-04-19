@@ -1,20 +1,19 @@
 import os
 from typing import Dict, List, Optional, Type
 
-from dependency_injector import providers
+from dependency_injector import providers #TODO: Tidy up imports
 
 from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter, import_class_by_namespace
-from dependency_injection import ServiceProvider, get_service, register_service
 from generics import TInputPort, TOutputPort
 from pipeline import (IAuthenticationVerifier, IAuthorisationEnforcer,
                       IBusinessRuleValidator, IEntityExistenceChecker,
                       IInputPortValidator, IInteractor, IPipe, PipePriority)
-from services import IPipelineFactory, IUseCaseInvoker
+from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
 class PipelineFactory(IPipelineFactory):
     
-    def __init__(self, service_provider: ServiceProvider, usecase_registry: Dict[str, List[Type[IPipe]]]):
+    def __init__(self, service_provider: IServiceProvider, usecase_registry: Dict[str, List[Type[IPipe]]]):
         self._service_provider = service_provider if service_provider is not None else ValueError(f"'{service_provider=}' cannot be None.")
         self._usecase_registry = usecase_registry if usecase_registry is not None else ValueError(f"'{usecase_registry=}' cannot be None.")
 
@@ -29,7 +28,7 @@ class PipelineFactory(IPipelineFactory):
 
         _PipeClasses = [import_class_by_namespace(_Namespace) for _Namespace in _PipeNamespaces]
 
-        _Pipes = [get_service(self._service_provider, _PipeClass) for _PipeClass in _PipeClasses]
+        _Pipes = [self._service_provider.get_service(_PipeClass) for _PipeClass in _PipeClasses]
         
         return sorted(_Pipes, key=lambda _Pipe: _Pipe.priority)
 
@@ -72,27 +71,7 @@ class UseCaseInvoker(IUseCaseInvoker):
 
 
 @staticmethod
-def construct_usecase_invoker(
-    service_provider: ServiceProvider,
-    usecase_locations: Optional[List[str]] = ["."],
-    directory_exclusion_patterns: Optional[List[str]] = [],
-    file_exclusion_patterns: Optional[List[str]] = []) -> IUseCaseInvoker:
-    
-    _UsecaseRegistry = construct_usecase_registry(service_provider, usecase_locations, directory_exclusion_patterns, file_exclusion_patterns)
-
-    register_service(service_provider, providers.Singleton, PipelineFactory, IPipelineFactory, service_provider, _UsecaseRegistry)
-
-    _PipelineFactory = get_service(service_provider, IPipelineFactory)
-
-    register_service(service_provider, providers.Factory, UseCaseInvoker, IUseCaseInvoker, _PipelineFactory)
-
-    return get_service(service_provider, IUseCaseInvoker)
-
-
-#TODO: this is still doing two things... (create registry, also register pipes in DI container) maybe not a bad thing? idk
-@staticmethod
 def construct_usecase_registry(
-    service_provider: ServiceProvider,
     usecase_locations: Optional[List[str]] = ["."],
     directory_exclusion_patterns: Optional[List[str]] = [],
     file_exclusion_patterns: Optional[List[str]] = []) -> Dict[str, List[str]]:
@@ -117,7 +96,6 @@ def construct_usecase_registry(
 
                 if issubclass(_Class, IPipe):
                     _Pipes.append(_Namespace)
-                    register_service(service_provider, providers.Factory, _Class)
 
             if _Pipes:
                 _UsecaseRegistry[_DirectoryNamespace] = { "pipes": _Pipes }
@@ -126,21 +104,18 @@ def construct_usecase_registry(
 
 
 @staticmethod
-def set_pipe_priority(**kwargs):
-    for key, value in _get_default_pipe_priorities().items():
-        setattr(PipePriority, key, value)
-
-    for key, value in kwargs.items():
+def set_pipe_priority(priorities: Dict[str, int]) -> None:
+    for key, value in priorities.items():
         setattr(PipePriority, key, value)
 
 
 @staticmethod
-def _get_default_pipe_priorities():
-    return {
+def set_default_pipe_priorities() -> None:
+    set_pipe_priority({
         f'{IAuthenticationVerifier.__name__}': 1,
         f'{IEntityExistenceChecker.__name__}': 2,
         f'{IAuthorisationEnforcer.__name__}': 3,
         f'{IBusinessRuleValidator.__name__}': 4,
         f'{IInputPortValidator.__name__}': 5,
         f'{IInteractor.__name__}': 6
-    }
+    })
