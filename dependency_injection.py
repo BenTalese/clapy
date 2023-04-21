@@ -15,9 +15,6 @@ from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 #TODO: Make clapy async
 
-class DependencyInjectorContainer(containers.DeclarativeContainer):
-    pass
-
 
 class IDependencyInjectorServiceProvider(IServiceProvider, ABC):
 
@@ -50,8 +47,8 @@ class IDependencyInjectorServiceProvider(IServiceProvider, ABC):
 
 class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
 
-    def __init__(self, container: containers.DeclarativeContainer):
-        self._container = container
+    def __init__(self):
+        self._container = containers.DeclarativeContainer()
 
 
     def get_service(self, service: Type[TServiceType]) -> TServiceType:
