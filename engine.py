@@ -3,6 +3,8 @@ from typing import Dict, List, Optional, Type
 
 from dependency_injector import providers #TODO: Tidy up imports
 
+# TODO: Don't throw generic exceptions, create custom Clapy ones where appropriate
+
 from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter, import_class_by_namespace
 from generics import TInputPort, TOutputPort
 from pipeline import (IAuthenticationVerifier, IAuthorisationEnforcer,
@@ -28,7 +30,7 @@ class PipelineFactory(IPipelineFactory):
 
         _PipeClasses = [import_class_by_namespace(_Namespace) for _Namespace in _PipeNamespaces]
 
-        _Pipes = [self._service_provider.get_service(_PipeClass) for _PipeClass in _PipeClasses]
+        _Pipes: List[IPipe] = [self._service_provider.get_service(_PipeClass) for _PipeClass in _PipeClasses]
         
         return sorted(_Pipes, key=lambda _Pipe: _Pipe.priority)
 
