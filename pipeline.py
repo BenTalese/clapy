@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Generic
+from typing import Callable, Coroutine, Generic
 
 from generics import TInputPort, TOutputPort
 
@@ -25,7 +25,7 @@ class IPipe(Generic[TInputPort, TOutputPort], ABC):
         pass
 
     @abstractmethod
-    def execute(self, input_port: TInputPort, output_port: TOutputPort) -> Callable | None:
+    async def execute_async(self, input_port: TInputPort, output_port: TOutputPort) -> Coroutine | None:
         pass
 
 

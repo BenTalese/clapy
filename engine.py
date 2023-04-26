@@ -1,8 +1,8 @@
+import asyncio
 import os
 from typing import Dict, List, Optional, Type
 
-from dependency_injector import providers #TODO: Tidy up imports
-
+ #TODO: Tidy up imports
 # TODO: Don't throw generic exceptions, create custom Clapy ones where appropriate
 
 from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter, import_class_by_namespace
@@ -41,36 +41,39 @@ class UseCaseInvoker(IUseCaseInvoker):
         self._pipeline_factory = pipeline_factory if pipeline_factory is not None else ValueError(f"'{pipeline_factory=}' cannot be None.")
 
 
-    def can_invoke_usecase(self, input_port: TInputPort, output_port: TOutputPort) -> bool:
-        _Pipeline = self._pipeline_factory.create_pipeline(input_port)
-
-        _PipelineResult = None
-        while _PipelineResult is None:
-
-            _Pipe = _Pipeline.pop(0)
-
-            if not isinstance(_Pipe, IInteractor):
-                _PipelineResult = _Pipe.execute(input_port, output_port)
-
-                if _PipelineResult is not None:
-                    return False
-
-            else:
-                return True
-
-
-    def invoke_usecase(self, input_port: TInputPort, output_port: TOutputPort) -> None:
-        _Pipeline = self._pipeline_factory.create_pipeline(input_port)
+    async def can_invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort) -> bool:
+        _Pipeline = await asyncio.get_event_loop().run_in_executor(None, self._pipeline_factory.create_pipeline, input_port)
 
         _PipelineResult = None
         while _PipelineResult is None and len(_Pipeline) > 0:
 
             _Pipe = _Pipeline.pop(0)
 
-            _PipelineResult = _Pipe.execute(input_port, output_port)
+            if not isinstance(_Pipe, IInteractor):
+                _PipelineResult = await _Pipe.execute_async(input_port, output_port)
+                
+                if asyncio.iscoroutine(_PipelineResult):
+                    await _PipelineResult
 
-        _PipelineResult()
+            if _PipelineResult is not None:
+                return False
+            
+        return True
 
+
+    async def invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort):
+        _Pipeline = await asyncio.get_event_loop().run_in_executor(None, self._pipeline_factory.create_pipeline, input_port)
+
+        _PipelineResult = None
+        while _PipelineResult is None and len(_Pipeline) > 0:
+
+            _Pipe = _Pipeline.pop(0)
+            
+            _PipelineResult = await _Pipe.execute_async(input_port, output_port)
+
+            if asyncio.iscoroutine(_PipelineResult):
+                await _PipelineResult
+            
 
 @staticmethod
 def construct_usecase_registry(
