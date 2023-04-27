@@ -5,7 +5,15 @@ from typing import List
 
 
 DIR_EXCLUSIONS = [r"__pycache__"]
+'''
+Clapy's default list of regular expression patterns that are used to exclude certain directories
+from being scanned during file searches.
+'''
 FILE_EXCLUSIONS = [r".*__init__\.py", r".*outputport\.py", r".*output_port\.py"]
+'''
+Clapy's default list of regular expression patterns that are used to exclude certain files
+from being scanned during file searches.
+'''
 
 
 @staticmethod
@@ -42,7 +50,7 @@ def import_class_by_namespace(namespace: str) -> type:
     _ModuleClasses = inspect.getmembers(_Module, inspect.isclass)
     _ModuleClass = next((obj for name, obj in _ModuleClasses if name.lower() == _ModuleName), None)
 
-    if _ModuleClass is None:
+    if _ModuleClass is None: # FIXME: Exception here, also update the doc
         raise Exception(f"""Could not find class for '{namespace}'. Classes must be named the same as their module
         to be registered in the dependency container. If you do not want this module to be scanned, add it to the
         file exclusions, or be more specific with your scan locations.""")
