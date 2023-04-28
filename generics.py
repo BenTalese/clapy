@@ -2,6 +2,7 @@ from typing import TypeVar
 
 from pipeline import IInputPort, IInteractor
 
+
 TAuthorisationFailure = TypeVar("TAuthorisationFailure")
 TInputPort = TypeVar("TInputPort", bound=IInputPort)
 TInteractor = TypeVar("TInteractor", bound=IInteractor)
