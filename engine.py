@@ -2,31 +2,46 @@ import asyncio
 import os
 from typing import Dict, List, Optional, Type
 
- #TODO: Tidy up imports
-# TODO: Don't throw generic exceptions, create custom Clapy ones where appropriate
-
-from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter, import_class_by_namespace
+from common import (DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter,
+                    import_class_by_namespace)
 from generics import TInputPort, TOutputPort
-from pipeline import (IAuthenticationVerifier, IAuthorisationEnforcer,
-                      IBusinessRuleValidator, IEntityExistenceChecker,
-                      IInputPortValidator, IInteractor, IPipe, PipePriority)
+from pipeline import IInteractor, IPipe, PipePriority
 from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
 class PipelineFactory(IPipelineFactory):
-    
+    '''Responsible for creating the pipeline for the use case invoker to execute.'''
+
     def __init__(self, service_provider: IServiceProvider, usecase_registry: Dict[str, List[Type[IPipe]]]):
         self._service_provider = service_provider if service_provider is not None else ValueError(f"'{service_provider=}' cannot be None.")
         self._usecase_registry = usecase_registry if usecase_registry is not None else ValueError(f"'{usecase_registry=}' cannot be None.")
 
 
-    def create_pipeline(self, input_port: TInputPort) -> List[Type[IPipe]]:
+    async def create_pipeline_async(self, input_port: TInputPort) -> List[Type[IPipe]]:
+        '''
+        Summary
+        -------
+        Creates a list of IPipe objects, sorted by priority, for a use case based on the input port provided.
+        
+        Parameters
+        ----------
+        `input_port` The input port of the use case to construct the pipeline for
+        
+        Exceptions
+        ----------
+        Raises a `KeyError` if the provided `input_port` does not match any registered use case.
+
+        Returns
+        -------
+        The pipeline consisting of the use case pipes ordered by their priority.
+        
+        '''
         _UsecaseKey = input_port.__module__.rsplit(".", 1)[0]
 
         if _UsecaseKey not in self._usecase_registry:
             raise KeyError(f"Could not find '{input_port}' in the pipeline registry.")
         
-        _PipeNamespaces = self._usecase_registry[_UsecaseKey]["pipes"]
+        _PipeNamespaces = self._usecase_registry[_UsecaseKey]
 
         _PipeClasses = [import_class_by_namespace(_Namespace) for _Namespace in _PipeNamespaces]
 
@@ -36,13 +51,31 @@ class PipelineFactory(IPipelineFactory):
 
 
 class UseCaseInvoker(IUseCaseInvoker):
+    '''The main engine of Clapy. Handles the invocation of use case pipelines and the execution of resulting actions.'''
 
     def __init__(self, pipeline_factory: IPipelineFactory):
         self._pipeline_factory = pipeline_factory if pipeline_factory is not None else ValueError(f"'{pipeline_factory=}' cannot be None.")
 
 
     async def can_invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort) -> bool:
-        _Pipeline = await asyncio.get_event_loop().run_in_executor(None, self._pipeline_factory.create_pipeline, input_port)
+        '''
+        Summary
+        -------
+        Checks if a use case can be successfully invoked based on provided input and output ports,
+        without performing the interactor execution. Useful for situations such as proactively disabling
+        a UI button based on whether or not a use case's interactor can be successfully invoked.
+        
+        Parameters
+        ----------
+        `input_port` The input port of the use case to be invoked\n
+        `output_port` The output port of the use case to be invoked
+        
+        Returns
+        -------
+        `True` if all pipes were successfully invoked without error responses and the interactor was reached, otherwise `false`.
+        
+        '''
+        _Pipeline = await self._pipeline_factory.create_pipeline_async(input_port)
 
         _PipelineResult = None
         while _PipelineResult is None and len(_Pipeline) > 0:
@@ -61,8 +94,20 @@ class UseCaseInvoker(IUseCaseInvoker):
         return True
 
 
-    async def invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort):
-        _Pipeline = await asyncio.get_event_loop().run_in_executor(None, self._pipeline_factory.create_pipeline, input_port)
+    async def invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort) -> None:
+        '''
+        Summary
+        -------
+        Performs the invocation of a use case with the provided input and output ports. Will stop
+        invocation on receival of a coroutine result, or if the pipeline's pipes are exhausted.
+        
+        Parameters
+        ----------
+        `input_port` The input port of the use case to be invoked\n
+        `output_port` The output port of the use case to be invoked
+        
+        '''
+        _Pipeline = await self._pipeline_factory.create_pipeline_async(input_port)
 
         _PipelineResult = None
         while _PipelineResult is None and len(_Pipeline) > 0:
@@ -80,7 +125,27 @@ def construct_usecase_registry(
     usecase_locations: Optional[List[str]] = ["."],
     directory_exclusion_patterns: Optional[List[str]] = [],
     file_exclusion_patterns: Optional[List[str]] = []) -> Dict[str, List[str]]:
-
+    '''
+    Summary
+    -------
+    Scans the provided project location, or entire project if no location provided, for use
+    cases and builds a dictonary of use cases and the associated use case's pipes by their namespace.
+    
+    Parameters
+    ----------
+    `usecase_scan_locations` An optional list of locations within the project where the usecase services
+    should be scanned for.\n
+    `directory_exclusion_patterns` An optional list of regular expression patterns used to exclude directories
+    from being scanned.\n
+    `file_exclusion_patterns`An optional list of regular expression patterns used to exclude files
+    from being scanned and registered.
+    
+    Returns
+    -------
+    A dictionary with the key being the namespace of the use case folder, and value being a list of use case
+    pipes found under that use case folder.
+    
+    '''
     directory_exclusion_patterns = directory_exclusion_patterns + DIR_EXCLUSIONS
     file_exclusion_patterns = file_exclusion_patterns + FILE_EXCLUSIONS
 
@@ -103,24 +168,23 @@ def construct_usecase_registry(
                     _Pipes.append(_Namespace)
 
             if _Pipes:
-                _UsecaseRegistry[_DirectoryNamespace] = { "pipes": _Pipes }
+                _UsecaseRegistry[_DirectoryNamespace] = { _Pipes }
 
     return _UsecaseRegistry
 
 
 @staticmethod
 def set_pipe_priority(priorities: Dict[str, int]) -> None:
+    '''
+    Summary
+    -------
+    Sets the priority for use case pipes as attributes on the PipePriority class
+    based on the provided priorities.
+    
+    Parameters
+    ----------
+    `priorities` A dictionary of pipe names and their priority number.
+    
+    '''
     for key, value in priorities.items():
         setattr(PipePriority, key, value)
-
-
-@staticmethod
-def set_default_pipe_priorities() -> None:
-    set_pipe_priority({
-        f'{IAuthenticationVerifier.__name__}': 1,
-        f'{IEntityExistenceChecker.__name__}': 2,
-        f'{IAuthorisationEnforcer.__name__}': 3,
-        f'{IBusinessRuleValidator.__name__}': 4,
-        f'{IInputPortValidator.__name__}': 5,
-        f'{IInteractor.__name__}': 6
-    })
