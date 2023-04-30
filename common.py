@@ -30,7 +30,7 @@ def import_class_by_namespace(namespace: str) -> type:
     
     Exceptions
     -------
-    Raises an exception if the class cannot be found.
+    Raises an `ImportError` if the class cannot be found.
 
     Returns
     -------
@@ -50,10 +50,10 @@ def import_class_by_namespace(namespace: str) -> type:
     _ModuleClasses = inspect.getmembers(_Module, inspect.isclass)
     _ModuleClass = next((obj for name, obj in _ModuleClasses if name.lower() == _ModuleName), None)
 
-    if _ModuleClass is None: # FIXME: Exception here, also update the doc
-        raise Exception(f"""Could not find class for '{namespace}'. Classes must be named the same as their module
-        to be registered in the dependency container. If you do not want this module to be scanned, add it to the
-        file exclusions, or be more specific with your scan locations.""")
+    if _ModuleClass is None:
+        raise ImportError(f"""Could not find class for '{namespace}'. Classes must be named the same as their module (e.g. my_example 
+        (Module) -> MyExample (Class)) to be registered in the dependency container. If you do not want this module to be scanned,
+        add it to the file exclusions, or be more specific with your scan locations.""")
 
     return _ModuleClass
 

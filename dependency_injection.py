@@ -8,15 +8,13 @@ from dependency_injector import containers, providers
 
 from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter, import_class_by_namespace
 from engine import PipelineFactory, UseCaseInvoker, construct_usecase_registry
+from exceptions import DuplicateServiceError
 from generics import TServiceType
 from pipeline import IPipe
 from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 class IDependencyInjectorServiceProvider(IServiceProvider, ABC):
-    '''
-    Clapy's default service provider interface for using Clapy with dependency_injector.
-
-    '''
+    '''Clapy's default service provider interface for using Clapy with dependency_injector.'''
 
     @abstractmethod
     def register_service(
@@ -116,8 +114,8 @@ class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
         `service` The service to be retrieved.
 
         Exceptions
-        -------
-        Raises a LookupError if the service could not be resolved.
+        ----------
+        Raises a `LookupError` if the service could not be resolved.
         
         Returns
         -------
@@ -147,14 +145,14 @@ class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
         `*args` Any required dependencies for this service to be constructed that are not registered in the dependency_injector container.
         
         Exceptions
-        -------
-        Raises an exception if the dependency_injector container already contains a service of the same type.
+        ----------
+        Raises `DuplicateServiceError` if the dependency_injector container already contains a service of the same type.
         
         '''
         _DependencyName = self._generate_service_name(interface_type if interface_type is not None else concrete_type)
 
         if hasattr(self._container, _DependencyName):
-            raise Exception(f"An already registered service is conflicting with {interface_type if interface_type is not None else concrete_type}.") # FIXME: Exception, fix docs
+            raise DuplicateServiceError(f"An already registered service is conflicting with {interface_type if interface_type is not None else concrete_type}.")
 
         _ConstructorDependencies = [_Param for _Param in inspect.signature(concrete_type.__init__).parameters.values()
                                         if _Param.annotation != inspect.Parameter.empty and self._has_service(_Param.annotation)]
@@ -253,8 +251,8 @@ class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
         `service` The service to generate a name for.
 
         Exceptions
-        -------
-        Raises an exception if the method fails to extract the fully qualified name of the service.
+        ----------
+        Raises a `ValueError` if the method fails to extract the fully qualified name of the service.
         
         Returns
         -------
@@ -264,7 +262,7 @@ class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
         _TypeMatch = re.search(r"(?<=')[^']+(?=')", str(service))
 
         if not _TypeMatch:
-            raise Exception(f"Could not generate name from fully qualified name of {service}.") #TODO: Exception, you know the drill :(
+            raise ValueError(f"Could not generate name from fully qualified name of {service}.")
 
         return _TypeMatch.group().replace('.', '_')
 
