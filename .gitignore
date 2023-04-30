@@ -4,4 +4,8 @@
 
 **/.vscode
 
+**/**.egg-info
+
+**/dist
+
 **/venv
