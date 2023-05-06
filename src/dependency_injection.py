@@ -13,86 +13,8 @@ from generics import TServiceType
 from pipeline import IPipe
 from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
-class IDependencyInjectorServiceProvider(IServiceProvider, ABC):
-    '''Clapy's default service provider interface for using Clapy with dependency_injector.'''
 
-    @abstractmethod
-    def register_service(
-        self,
-        provider_method: Type,
-        concrete_type: Type[TServiceType],
-        interface_type: Optional[Type[TServiceType]] = None,
-        *args) -> None:
-        '''
-        Summary
-        -------
-        Registers a service in the dependency_injector container with its dependencies.
-        
-        Parameters
-        ----------
-        `provider_method` The lifetime of the service, defined using the providers module from dependency_injector.\n
-        `concrete_type` The concrete implementation of the service being registered. Can be registered on its own.\n
-        `interface_type` The optional interface that the concrete type implements.\n
-        `*args` Any required dependencies for this service to be constructed that are not registered in the dependency_injector container.
-        
-        '''
-        pass
-
-    
-    @abstractmethod
-    def register_usecase_services(
-        self,
-        usecase_scan_locations: Optional[List[str]] = ["."],
-        directory_exclusion_patterns: Optional[List[str]] = [],
-        file_exclusion_patterns: Optional[List[str]] = []) -> None:
-        '''
-        Summary
-        -------
-        Scans and registers use case pipes under the specified locations to the dependency_injector
-        container.
-        
-        Parameters
-        ----------
-        `usecase_scan_locations` An optional list of locations within the project where the usecase services
-        should be scanned for.\n
-        `directory_exclusion_patterns` An optional list of regular expression patterns used to exclude directories
-        from being scanned.\n
-        `file_exclusion_patterns`An optional list of regular expression patterns used to exclude files
-        from being scanned and registered.
-        
-        '''
-        pass
-
-    @abstractmethod
-    def construct_usecase_invoker(
-        self,
-        usecase_locations: Optional[List[str]] = ["."],
-        directory_exclusion_patterns: Optional[List[str]] = [],
-        file_exclusion_patterns: Optional[List[str]] = []) -> IUseCaseInvoker:
-        '''
-        Summary
-        -------
-        Builds and registers the dependencies of Clapy's use case invoker, returning the built use case
-        invoker.
-        
-        Parameters
-        ----------
-        `usecase_scan_locations` An optional list of locations within the project where the usecase services
-        should be scanned for.\n
-        `directory_exclusion_patterns` An optional list of regular expression patterns used to exclude directories
-        from being scanned.\n
-        `file_exclusion_patterns`An optional list of regular expression patterns used to exclude files
-        from being scanned and registered.
-        
-        Returns
-        -------
-        An instance of the concrete implementation for the `IUseCaseInvoker`.
-        
-        '''
-        pass
-
-
-class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
+class DependencyInjectorServiceProvider(IServiceProvider):
     '''
     Clapy's default service provider implementation for using Clapy with dependency_injector. Uses
     DeclarativeContainer from dependency_injector.
@@ -135,7 +57,8 @@ class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
         Summary
         -------
         Registers a service in the dependency_injector container with its dependencies. If dependencies of the service
-        are detected to be registered in the container, they will be linked to the service automatically.
+        are detected to be registered in the container, they will be linked to the service automatically. Dependencies
+        are detected via the type hints of the service's constructor's parameters.
         
         Parameters
         ----------
@@ -190,7 +113,7 @@ class DependencyInjectorServiceProvider(IDependencyInjectorServiceProvider):
         from being scanned and registered.
         
         '''
-        directory_exclusion_patterns = directory_exclusion_patterns + DIR_EXCLUSIONS
+        directory_exclusion_patterns = directory_exclusion_patterns + DIR_EXCLUSIONS #TODO: can this directly be done inside apply_exclusion_filter parameter?
         file_exclusion_patterns = file_exclusion_patterns + FILE_EXCLUSIONS
 
         for _Location in usecase_scan_locations:
