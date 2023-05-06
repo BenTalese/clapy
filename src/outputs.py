@@ -16,7 +16,7 @@ class IAuthenticationOutputPort(ABC):
 class IAuthorisationOutputPort(Generic[TAuthorisationFailure], ABC):
     '''An output port for when authorisation is required by the use case.'''
 
-    @abstractmethod
+    @abstractmethod #TODO: Not sure the async keyword is needed really...
     async def present_unauthorised_async(self, authorisation_failure: TAuthorisationFailure) -> None:
         '''Presents an authorisation failure.'''
         pass

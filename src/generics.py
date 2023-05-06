@@ -1,11 +1,11 @@
 from typing import TypeVar
 
-from pipeline import IInputPort, IInteractor
+from pipeline import InputPort, Interactor
 
 
 TAuthorisationFailure = TypeVar("TAuthorisationFailure")
-TInputPort = TypeVar("TInputPort", bound=IInputPort)
-TInteractor = TypeVar("TInteractor", bound=IInteractor)
+TInputPort = TypeVar("TInputPort", bound=InputPort) #TODO: This one is questionable too...
+TInteractor = TypeVar("TInteractor", bound=Interactor) #TODO: Is this even used anywhere anymore?
 TOutputPort = TypeVar("TOutputPort")
 TServiceType = TypeVar("TServiceType")
 TValidationFailure = TypeVar("TValidationFailure")

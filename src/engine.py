@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Type
 from common import (DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter,
                     import_class_by_namespace)
 from generics import TInputPort, TOutputPort
-from pipeline import IInteractor, IPipe, PipePriority
+from pipeline import IPipe, Interactor, PipePriority
 from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
@@ -82,17 +82,18 @@ class UseCaseInvoker(IUseCaseInvoker):
 
             _Pipe = _Pipeline.pop(0)
 
-            if not isinstance(_Pipe, IInteractor):
+            if not isinstance(_Pipe, Interactor):
                 _PipelineResult = await _Pipe.execute_async(input_port, output_port)
                 
                 if asyncio.iscoroutine(_PipelineResult):
                     await _PipelineResult
+            
+            else:
+                return True
 
             if _PipelineResult is not None:
                 return False
             
-        return True
-
 
     async def invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort) -> None:
         '''
