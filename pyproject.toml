@@ -14,10 +14,10 @@ license = { file = "LICENCE" }
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3", #TODO: Add more supported versions here (.7, .8, .9, .10, .11)
 ]
 keywords = ["clean", "architecture", "clapy", "use", "case"]
-requires-python = ">=3.11"
+requires-python = ">=3.7"
 
 [project.optional-dependencies]
 dependency_injector = ["dependency_injector >= 4.41.0"]
