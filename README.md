@@ -6,8 +6,10 @@
 
 <p align="center">
   <img alt="MIT Licence" src="https://img.shields.io/pypi/l/clapy"/>
+  <img alt="Python Versions" src="https://img.shields.io/pypi/pyversions/clapy"/>
+  <img alt="Wheel" src="https://img.shields.io/pypi/wheel/clapy"/>
   <img alt="Current Release" src="https://img.shields.io/pypi/v/clapy"/>
-  <img alt="Current Release" src="https://img.shields.io/github/actions/workflow/status/BenTalese/clapy/build-and-test.yml?branch=ReleaseCandidate"/>
+  <img alt="Build and Test" src="https://img.shields.io/github/actions/workflow/status/BenTalese/clapy/build-and-test.yml?branch=ReleaseCandidate"/>
   <img alt="Repo Size" src="https://img.shields.io/github/repo-size/BenTalese/clapy?color=red"/>
   <img alt="Awesomeness" src="https://img.shields.io/badge/Awesomeness-100%25-brightgreen" />
 </p>
@@ -43,7 +45,7 @@ The goal of Clapy is to provide a modern, modular solution for handling the enti
 ## Getting Started
 ### Installation
 
-To install the Clapy package, simply use pip:
+To install the Clapy package, simply use pip. Note, Clapy requires Python 3.7 or above.
 ```bash
 pip install clapy
 ```
@@ -193,7 +195,6 @@ For this example we are defining the order of Clapy's default pipe categories. P
 
 ### Invoking Use Cases
 Now that we've created our use case and we've wired up Clapy, it's time to finally invoke our use case! We do this by getting the `IUseCaseInvoker` service from the DI container, creating an "input port" and a "presenter" that implements our use case's output port, then calling `invoke_usecase_async` within our main asynchronous event loop.
-
 
 ```python
 # An example presenter that implements our use case's output port...
