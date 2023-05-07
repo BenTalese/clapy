@@ -13,31 +13,25 @@ authors = [{ name = "Ben Talese", email = "ben.talese@gmail.com" }]
 license = { file = "LICENCE" }
 classifiers = [
     "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Framework :: AsyncIO",
+    "Development Status :: 4 - Beta",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3", #TODO: Add more supported versions here (.7, .8, .9, .10, .11)
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"
 ]
-keywords = ["clean", "architecture", "clapy", "use", "case"]
+keywords = ["clean", "architecture", "clapy", "use", "case",
+    "use-case", "design", "patterns", "python3", "asyncio",
+    "dependency", "injection", "onion"]
 requires-python = ">=3.7"
 
 [project.optional-dependencies]
 dependency_injector = ["dependency_injector >= 4.41.0"]
 
 [project.urls]
-Homepage = "https://github.com/BenTalese/clapy"
-
-[tool.bumpver]
-current_version = "1.0.0"
-version_pattern = "MAJOR.MINOR.PATCH"
-commit_message = "bump version {old_version} -> {new_version}"
-commit = true
-tag = true
-push = true
-
-[tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'current_version = "{version}"',
-]
-"README.md" = [
-    "{version}",
-    "{pep440_version}",
-]
+homepage = "https://github.com/BenTalese/clapy"
