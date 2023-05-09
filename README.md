@@ -175,7 +175,7 @@ Notice how Clapy is defining the priority on the interactor pipe type rather tha
 Once our pipes have a priority defined (or inherit a pipe type which has its priority defined) as an attribute on the `PipePriority` class, we can finally set the actual ordering of the pipes. This is done by assigning a value to the attributes via the `set_pipe_priority` method provided by Clapy.
 
 ```python
-  set_pipe_priority({
+  Common.set_pipe_priority({
           f'{AuthenticationVerifier.__name__}': 1,
           f'{EntityExistenceChecker.__name__}': 2,
           f'{AuthorisationEnforcer.__name__}': 3,
