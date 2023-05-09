@@ -151,7 +151,7 @@ Clapy's `DependencyInjectorServiceProvider` contains methods to help automate th
 
 ```python
 # You can have as many or as few locations as needed...
-_UsecaseScanLocations = ["application/usecases", "some/other/location"]
+_UsecaseScanLocations = ["application/use_cases", "some/other/location"]
 
 _UsecaseRegistry = construct_usecase_registry(_UsecaseScanLocations)
 _ServiceProvider.register_usecase_services(_UsecaseScanLocations)

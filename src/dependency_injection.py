@@ -1,12 +1,12 @@
 import inspect
 import os
 import re
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod #TODO: Tidy imports
 from typing import List, Optional, Type
 
 from dependency_injector import containers, providers
 
-from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter, import_class_by_namespace
+from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
 from engine import PipelineFactory, UseCaseInvoker, construct_usecase_registry
 from exceptions import DuplicateServiceError
 from generics import TServiceType
@@ -46,7 +46,8 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         '''
         _ServiceName = self._generate_service_name(service)
 
-        if _Service := self._container.providers.get(_ServiceName):
+        _Service = self._container.providers.get(_ServiceName)
+        if _Service is not None:
             return _Service()
         else:
             raise LookupError(f"Was not able to retrieve '{service.__name__}' from DI container.")
@@ -119,12 +120,12 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         for _Location in usecase_scan_locations:
             for _Root, _Directories, _Files in os.walk(_Location):
 
-                apply_exclusion_filter(_Directories, directory_exclusion_patterns)
-                apply_exclusion_filter(_Files, file_exclusion_patterns)
+                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns)
+                Common.apply_exclusion_filter(_Files, file_exclusion_patterns)
 
                 for _File in _Files:
                     _Namespace = _Root.replace('/', '.') + "." + _File[:-3]
-                    _Class = import_class_by_namespace(_Namespace)
+                    _Class = Common.import_class_by_namespace(_Namespace)
 
                     if issubclass(_Class, IPipe):
                         self.register_service(providers.Factory, _Class)

@@ -2,8 +2,7 @@ import asyncio
 import os
 from typing import Dict, List, Optional, Type
 
-from common import (DIR_EXCLUSIONS, FILE_EXCLUSIONS, apply_exclusion_filter,
-                    import_class_by_namespace)
+from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
 from generics import TInputPort, TOutputPort
 from pipeline import IPipe, Interactor, PipePriority
 from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
@@ -13,8 +12,8 @@ class PipelineFactory(IPipelineFactory):
     '''Responsible for creating the pipeline for the use case invoker to execute.'''
 
     def __init__(self, service_provider: IServiceProvider, usecase_registry: Dict[str, List[Type[IPipe]]]):
-        self._service_provider = service_provider if service_provider is not None else ValueError(f"'{service_provider=}' cannot be None.")
-        self._usecase_registry = usecase_registry if usecase_registry is not None else ValueError(f"'{usecase_registry=}' cannot be None.")
+        self._service_provider = service_provider if service_provider is not None else ValueError("service_provider cannot be None.")
+        self._usecase_registry = usecase_registry if usecase_registry is not None else ValueError("usecase_registry cannot be None.")
 
 
     async def create_pipeline_async(self, input_port: TInputPort) -> List[Type[IPipe]]:
@@ -43,7 +42,7 @@ class PipelineFactory(IPipelineFactory):
         
         _PipeNamespaces = self._usecase_registry[_UsecaseKey]
 
-        _PipeClasses = [import_class_by_namespace(_Namespace) for _Namespace in _PipeNamespaces]
+        _PipeClasses = [Common.import_class_by_namespace(_Namespace) for _Namespace in _PipeNamespaces]
 
         _Pipes: List[IPipe] = [self._service_provider.get_service(_PipeClass) for _PipeClass in _PipeClasses]
         
@@ -54,7 +53,7 @@ class UseCaseInvoker(IUseCaseInvoker):
     '''The main engine of Clapy. Handles the invocation of use case pipelines and the execution of resulting actions.'''
 
     def __init__(self, pipeline_factory: IPipelineFactory):
-        self._pipeline_factory = pipeline_factory if pipeline_factory is not None else ValueError(f"'{pipeline_factory=}' cannot be None.")
+        self._pipeline_factory = pipeline_factory if pipeline_factory is not None else ValueError("pipeline_factory cannot be None.")
 
 
     async def can_invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort) -> bool:
@@ -120,72 +119,73 @@ class UseCaseInvoker(IUseCaseInvoker):
             if asyncio.iscoroutine(_PipelineResult):
                 await _PipelineResult
             
+            
+class Engine:
+    @staticmethod
+    def construct_usecase_registry(
+        usecase_locations: Optional[List[str]] = ["."],
+        directory_exclusion_patterns: Optional[List[str]] = [],
+        file_exclusion_patterns: Optional[List[str]] = []) -> Dict[str, List[str]]:
+        '''
+        Summary
+        -------
+        Scans the provided project location, or entire project if no location provided, for use
+        cases and builds a dictonary of use cases and the associated use case's pipes by their namespace.
+        
+        Parameters
+        ----------
+        `usecase_scan_locations` An optional list of locations within the project where the usecase services
+        should be scanned for.\n
+        `directory_exclusion_patterns` An optional list of regular expression patterns used to exclude directories
+        from being scanned.\n
+        `file_exclusion_patterns`An optional list of regular expression patterns used to exclude files
+        from being scanned and registered.
+        
+        Returns
+        -------
+        A dictionary with the key being the namespace of the use case folder, and value being a list of use case
+        pipes found under that use case folder.
+        
+        '''
+        directory_exclusion_patterns = directory_exclusion_patterns + DIR_EXCLUSIONS
+        file_exclusion_patterns = file_exclusion_patterns + FILE_EXCLUSIONS
 
-@staticmethod
-def construct_usecase_registry(
-    usecase_locations: Optional[List[str]] = ["."],
-    directory_exclusion_patterns: Optional[List[str]] = [],
-    file_exclusion_patterns: Optional[List[str]] = []) -> Dict[str, List[str]]:
-    '''
-    Summary
-    -------
-    Scans the provided project location, or entire project if no location provided, for use
-    cases and builds a dictonary of use cases and the associated use case's pipes by their namespace.
-    
-    Parameters
-    ----------
-    `usecase_scan_locations` An optional list of locations within the project where the usecase services
-    should be scanned for.\n
-    `directory_exclusion_patterns` An optional list of regular expression patterns used to exclude directories
-    from being scanned.\n
-    `file_exclusion_patterns`An optional list of regular expression patterns used to exclude files
-    from being scanned and registered.
-    
-    Returns
-    -------
-    A dictionary with the key being the namespace of the use case folder, and value being a list of use case
-    pipes found under that use case folder.
-    
-    '''
-    directory_exclusion_patterns = directory_exclusion_patterns + DIR_EXCLUSIONS
-    file_exclusion_patterns = file_exclusion_patterns + FILE_EXCLUSIONS
+        _UsecaseRegistry = {}
 
-    _UsecaseRegistry = {}
+        for _Location in usecase_locations:
+            for _Root, _Directories, _Files in os.walk(_Location):
 
-    for _Location in usecase_locations:
-        for _Root, _Directories, _Files in os.walk(_Location):
+                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns)
+                Common.apply_exclusion_filter(_Files, file_exclusion_patterns)
 
-            apply_exclusion_filter(_Directories, directory_exclusion_patterns)
-            apply_exclusion_filter(_Files, file_exclusion_patterns)
+                _DirectoryNamespace = _Root.replace('/', '.')
+                _Pipes = []
 
-            _DirectoryNamespace = _Root.replace('/', '.')
-            _Pipes = []
+                for _File in _Files:
+                    _Namespace = _DirectoryNamespace + "." + _File[:-3]
+                    _Class = Common.import_class_by_namespace(_Namespace)
 
-            for _File in _Files:
-                _Namespace = _DirectoryNamespace + "." + _File[:-3]
-                _Class = import_class_by_namespace(_Namespace)
+                    if issubclass(_Class, IPipe):
+                        _Pipes.append(_Namespace)
 
-                if issubclass(_Class, IPipe):
-                    _Pipes.append(_Namespace)
+                if _Pipes:
+                    _UsecaseRegistry[_DirectoryNamespace] = { _Pipes }
 
-            if _Pipes:
-                _UsecaseRegistry[_DirectoryNamespace] = { _Pipes }
-
-    return _UsecaseRegistry
+        return _UsecaseRegistry
 
 
-@staticmethod
-def set_pipe_priority(priorities: Dict[str, int]) -> None:
-    '''
-    Summary
-    -------
-    Sets the priority for use case pipes as attributes on the PipePriority class
-    based on the provided priorities.
-    
-    Parameters
-    ----------
-    `priorities` A dictionary of pipe names and their priority number.
-    
-    '''
-    for key, value in priorities.items():
-        setattr(PipePriority, key, value)
+    @staticmethod
+    def set_pipe_priority(priorities: Dict[str, int]) -> None:
+        '''
+        Summary
+        -------
+        Sets the priority for use case pipes as attributes on the PipePriority class
+        based on the provided priorities.
+        
+        Parameters
+        ----------
+        `priorities` A dictionary of pipe names and their priority number.
+        
+        '''
+        for key, value in priorities.items():
+            setattr(PipePriority, key, value)
