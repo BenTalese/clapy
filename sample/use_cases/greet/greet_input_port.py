@@ -1,4 +1,4 @@
-from pipeline import InputPort
+from src.clapy.pipeline import InputPort
 
 
 class GreetInputPort(InputPort):

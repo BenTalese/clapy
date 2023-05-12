@@ -2,10 +2,10 @@ import asyncio
 import os
 from typing import Dict, List, Optional, Type
 
-from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
-from generics import TInputPort, TOutputPort
-from pipeline import IPipe, Interactor, PipePriority
-from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
+from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
+from .generics import TInputPort, TOutputPort
+from .pipeline import IPipe, Interactor, PipePriority
+from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
 class PipelineFactory(IPipelineFactory):
@@ -158,7 +158,7 @@ class Engine:
                 Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns)
                 Common.apply_exclusion_filter(_Files, file_exclusion_patterns)
 
-                _DirectoryNamespace = _Root.replace('/', '.')
+                _DirectoryNamespace = _Root.replace('/', '.').lstrip(".")
                 _Pipes = []
 
                 for _File in _Files:

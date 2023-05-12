@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Type
 
-from generics import TInputPort, TOutputPort, TServiceType
-from pipeline import IPipe
+from .generics import TInputPort, TOutputPort, TServiceType
+from .pipeline import IPipe
 
 
 class IPipelineFactory(ABC):

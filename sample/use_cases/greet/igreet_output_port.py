@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from outputs import IValidationOutputPort
+from src.clapy.outputs import IValidationOutputPort
 
 
 class IGreetOutputPort(IValidationOutputPort, ABC):

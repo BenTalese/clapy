@@ -1,7 +1,7 @@
 from typing import Any, Coroutine, Union
 from sample.use_cases.greet.greet_input_port import GreetInputPort
 from sample.use_cases.greet.igreet_output_port import IGreetOutputPort
-from pipeline import Interactor
+from src.clapy.pipeline import Interactor
 
 
 class GreetInteractor(Interactor):

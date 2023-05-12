@@ -1,7 +1,8 @@
 
 from typing import Generic
-from generics import TInputPort, TOutputPort
-from pipeline import IPipe, PipePriority
+
+from src.clapy.generics import TInputPort, TOutputPort
+from src.clapy.pipeline import IPipe, PipePriority
 
 
 class NameChecker(IPipe, Generic[TInputPort, TOutputPort]):

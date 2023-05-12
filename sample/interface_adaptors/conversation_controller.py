@@ -1,6 +1,6 @@
 from sample.use_cases.greet.greet_input_port import GreetInputPort
 from sample.use_cases.greet.igreet_output_port import IGreetOutputPort
-from services import IUseCaseInvoker
+from src.clapy.services import IUseCaseInvoker
 
 
 class ConversationController:

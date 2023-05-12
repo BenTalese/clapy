@@ -6,12 +6,12 @@ from typing import List, Optional, Type
 
 from dependency_injector import containers, providers
 
-from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
-from engine import Engine, PipelineFactory, UseCaseInvoker
-from exceptions import DuplicateServiceError
-from generics import TServiceType
-from pipeline import IPipe
-from services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
+from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
+from .engine import Engine, PipelineFactory, UseCaseInvoker
+from .exceptions import DuplicateServiceError
+from .generics import TServiceType
+from .pipeline import IPipe
+from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
 class DependencyInjectorServiceProvider(IServiceProvider):
@@ -124,7 +124,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
                 Common.apply_exclusion_filter(_Files, file_exclusion_patterns)
 
                 for _File in _Files:
-                    _Namespace = _Root.replace('/', '.') + "." + _File[:-3]
+                    _Namespace = (_Root.replace('/', '.') + "." + _File[:-3]).lstrip(".")
                     _Class = Common.import_class_by_namespace(_Namespace)
 
                     if issubclass(_Class, IPipe):

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Coroutine, Generic, Union
 
-from generics import TInputPort, TOutputPort
+from .generics import TInputPort, TOutputPort
 
 
 class PipePriorityMeta(type):

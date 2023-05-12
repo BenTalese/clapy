@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
-from generics import TAuthorisationFailure, TValidationFailure
+from .generics import TAuthorisationFailure, TValidationFailure
 
 
 class IAuthenticationOutputPort(ABC):
