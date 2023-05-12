@@ -1,8 +1,6 @@
 from typing import TypeVar
 
 
-
-
 TAuthorisationFailure = TypeVar("TAuthorisationFailure")
 TInputPort = TypeVar("TInputPort") #TODO: This one is questionable too...
 TInteractor = TypeVar("TInteractor") #TODO: Is this even used anywhere anymore?

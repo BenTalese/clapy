@@ -1,4 +1,5 @@
 from typing import Any, Coroutine
+
 from sample.use_cases.greet.igreet_output_port import IGreetOutputPort
 
 

@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Type
 
 from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
 from .generics import TInputPort, TOutputPort
-from .pipeline import IPipe, Interactor
+from .pipeline import IPipe
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
