@@ -51,14 +51,14 @@ class AuthenticationVerifier(IPipe):
     '''Marks a class as an authentication verifier pipe.'''
     @property
     def priority(self) -> PipePriority:
-        return PipePriority.AuthenticationVerifier
+        return getattr(PipePriority, AuthenticationVerifier.__name__)
 
 
 class AuthorisationEnforcer(IPipe, Generic[TInputPort, TOutputPort]):
     '''Marks a class as an authorisation enforcer pipe.'''
     @property
     def priority(self) -> PipePriority:
-        return PipePriority.AuthorisationEnforcer
+        return getattr(PipePriority, AuthorisationEnforcer.__name__)
 
 #TODO: Should i have this still? maybe rename?
 # Don't forget it is in the README
@@ -66,21 +66,21 @@ class BusinessRuleValidator(IPipe, Generic[TInputPort, TOutputPort]):
     '''Marks a class as a business rule validator pipe.'''
     @property
     def priority(self) -> PipePriority:
-        return PipePriority.BusinessRuleValidator
+        return getattr(PipePriority, BusinessRuleValidator.__name__)
 
 
 class EntityExistenceChecker(IPipe, Generic[TInputPort, TOutputPort]):
     '''Marks a class as an entity existence checker pipe.'''
     @property
     def priority(self) -> PipePriority:
-        return PipePriority.EntityExistenceChecker
+        return getattr(PipePriority, EntityExistenceChecker.__name__)
 
 
 class InputPortValidator(IPipe, Generic[TInputPort, TOutputPort]):
     '''Marks a class as an input port validator pipe.'''
     @property
     def priority(self) -> PipePriority:
-        return PipePriority.InputPortValidator
+        return getattr(PipePriority, InputPortValidator.__name__)
 
 
 class InputPort():
@@ -92,4 +92,4 @@ class Interactor(IPipe, Generic[TInputPort, TOutputPort]):
     '''Marks a class as an interactor pipe.'''
     @property
     def priority(self) -> PipePriority:
-        return PipePriority.Interactor
+        return getattr(PipePriority, Interactor.__name__)
