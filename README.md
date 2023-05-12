@@ -242,7 +242,7 @@ We could then expect from this the result from the `ExampleInputPortValidator`:
 Which concludes the basics of using Clapy. This is simply a snippet of what you could do with Clapy and clean architecture use cases. Go forth and be clean!
 
 ## Conventions, Rules & Restrictions
-<W.I.P.>
+TODO: <W.I.P.>
 
 Clapy was built with a general project structure in mind... some may or may not work outside of these assumptions that were made
 
