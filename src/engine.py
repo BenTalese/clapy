@@ -169,7 +169,7 @@ class Engine:
                         _Pipes.append(_Namespace)
 
                 if _Pipes:
-                    _UsecaseRegistry[_DirectoryNamespace] = { _Pipes }
+                    _UsecaseRegistry[_DirectoryNamespace] = _Pipes
 
         return _UsecaseRegistry
 
