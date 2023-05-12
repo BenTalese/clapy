@@ -7,7 +7,7 @@ from typing import List, Optional, Type
 from dependency_injector import containers, providers
 
 from common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
-from engine import PipelineFactory, UseCaseInvoker, construct_usecase_registry
+from engine import Engine, PipelineFactory, UseCaseInvoker
 from exceptions import DuplicateServiceError
 from generics import TServiceType
 from pipeline import IPipe
@@ -157,7 +157,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         An instance of the concrete implementation for the `IUseCaseInvoker`.
         
         '''
-        _UsecaseRegistry = construct_usecase_registry(usecase_scan_locations, directory_exclusion_patterns, file_exclusion_patterns)
+        _UsecaseRegistry = Engine.construct_usecase_registry(usecase_scan_locations, directory_exclusion_patterns, file_exclusion_patterns)
         self.register_service(providers.Singleton, PipelineFactory, IPipelineFactory, self, _UsecaseRegistry)
         self.register_service(providers.Factory, UseCaseInvoker, IUseCaseInvoker)
         return self.get_service(IUseCaseInvoker)
