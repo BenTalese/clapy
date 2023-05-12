@@ -9,7 +9,7 @@ class IPipelineFactory(ABC):
     '''Responsible for creating the pipeline for the use case invoker to execute.'''
 
     @abstractmethod
-    async def create_pipeline_async(self, input_port: TInputPort) -> List[Type[IPipe]]:
+    async def create_pipeline_async(self, input_port: TInputPort, pipeline_configuration: List[Type[IPipe]]) -> List[Type[IPipe]]:
         '''
         Summary
         -------
@@ -53,28 +53,7 @@ class IUseCaseInvoker(ABC):
     '''The main engine of Clapy. Handles the invocation of use case pipelines and the execution of resulting actions.'''
 
     @abstractmethod
-    async def can_invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort) -> bool:
-        '''
-        Summary
-        -------
-        Checks if a use case can be successfully invoked based on provided input and output ports,
-        without performing the interactor execution. Useful for situations such as proactively disabling
-        a UI button based on whether or not a use case's interactor can be successfully invoked.
-        
-        Parameters
-        ----------
-        `input_port` The input port of the use case to be invoked\n
-        `output_port` The output port of the use case to be invoked
-        
-        Returns
-        -------
-        `True` if all pipes were successfully invoked without error responses and the interactor was reached, otherwise `false`.
-        
-        '''
-        pass
-
-    @abstractmethod
-    async def invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort) -> None:
+    async def invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort, pipeline_configuration: List[Type[IPipe]]) -> None:
         '''
         Summary
         -------
