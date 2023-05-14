@@ -28,7 +28,7 @@ jobs:
 
       - name: Run flake8
         run: |
-          flake 8 --config=.flake8
+          flake8 --config=.flake8
 
       - name: Run pytest
         run: |
