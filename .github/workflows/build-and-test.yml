@@ -36,7 +36,7 @@ jobs:
 
       - name: Run pytest
         run: |
-          pytest || true
+          pytest -v -o "addopts=" --cov=src/clapy || true
 
       - name: Run tox
         run: tox || true
