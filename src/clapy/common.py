@@ -9,6 +9,7 @@ DIR_EXCLUSIONS = [r"__pycache__"]
 Clapy's default list of regular expression patterns that are used to exclude certain directories
 from being scanned during file searches.
 '''
+
 FILE_EXCLUSIONS = [r".*__init__\.py", r".*outputport\.py", r".*output_port\.py", r"^.*(?<!\.py)$"]
 '''
 Clapy's default list of regular expression patterns that are used to exclude certain files
