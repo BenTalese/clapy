@@ -1,0 +1,16 @@
+# Run via terminal: flake8 src/clapy/ --output-file=tests/reports/flake8_output.txt
+
+[flake8]
+exclude = 
+    __pycache__,
+    venv,
+    dist,
+    .github,
+    img
+format = pylint
+max-line-length = 120
+max-doc-length = 90
+indent-size = 4
+statistics = True
+count = True
+maxcomplexity = 10
