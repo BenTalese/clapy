@@ -8,6 +8,10 @@ exclude =
     .github
     img
     .tox
+    .pytest_cache
+    clapy.egg-info
+    .git
+    .vscode
 format = pylint
 max-line-length = 120
 max-doc-length = 120
