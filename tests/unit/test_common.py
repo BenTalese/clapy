@@ -1,9 +1,7 @@
-import os
-import sys
-sys.path.append(os.getcwd())
-
 from unittest.mock import Mock
+
 import pytest
+
 from src.clapy.common import Common
 
 
@@ -18,15 +16,16 @@ def mock_classes():
         ('CoffeeMaker_Pro2000', Mock())
     ]
 
+
 @pytest.fixture
 def mock_module():
     return Mock()
 
 
-def test__import_class_by_namespace__ModuleContainsManyClasses__ImportsClassMatchingModuleName(mocker, mock_classes, mock_module):
+def test__import_class_by_namespace__ModuleContainsManyClasses__ImportsClassMatchingModuleName(mocker, mock_classes, mock_module):  # noqa E501
     # Arrange
-    mocker.patch("inspect.getmembers", return_value = mock_classes)
-    mocker.patch('importlib.import_module', return_value = mock_module)
+    mocker.patch("inspect.getmembers", return_value=mock_classes)
+    mocker.patch('importlib.import_module', return_value=mock_module)
 
     _Namespace = 'some.place.in.project.coffee_maker_pro_2000'
 
@@ -42,9 +41,9 @@ def test__import_class_by_namespace__ModuleContainsManyClasses__ImportsClassMatc
 def test__import_class_by_namespace__NoMatchingClassExists__RaisesImportError(mocker, mock_classes, mock_module):
     # Arrange
     mock_classes.pop(1)
-    
-    mocker.patch("inspect.getmembers", return_value = mock_classes)
-    mocker.patch('importlib.import_module', return_value = mock_module)
+
+    mocker.patch("inspect.getmembers", return_value=mock_classes)
+    mocker.patch('importlib.import_module', return_value=mock_module)
 
     _Namespace = 'some.place.in.project.coffee_maker_pro_2000'
 
@@ -65,6 +64,7 @@ def file_names():
         "file3.py",
         "file4.txt"
     ]
+
 
 @pytest.fixture
 def patterns():
