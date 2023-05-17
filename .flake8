@@ -2,11 +2,12 @@
 
 [flake8]
 exclude = 
-    __pycache__,
-    venv,
-    dist,
-    .github,
+    **/__pycache__
+    venv
+    dist
+    .github
     img
+    .tox
 format = pylint
 max-line-length = 120
 max-doc-length = 120
