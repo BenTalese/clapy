@@ -9,7 +9,7 @@ exclude =
     img
 format = pylint
 max-line-length = 120
-max-doc-length = 90
+max-doc-length = 120
 indent-size = 4
 statistics = True
 count = True
