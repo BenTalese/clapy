@@ -9,20 +9,23 @@ class IPipelineFactory(ABC):
     '''Responsible for creating the pipeline for the use case invoker to execute.'''
 
     @abstractmethod
-    async def create_pipeline_async(self, input_port: TInputPort, pipeline_configuration: List[Type[IPipe]]) -> List[Type[IPipe]]:
+    async def create_pipeline_async(
+            self,
+            input_port: TInputPort,
+            pipeline_configuration: List[Type[IPipe]]) -> List[Type[IPipe]]:
         '''
         Summary
         -------
         Creates a list of IPipe objects, sorted by priority, for a use case based on the input port provided.
-        
+
         Parameters
         ----------
         `input_port` The input port of the use case to construct the pipeline for
-        
+
         Returns
         -------
         The pipeline consisting of the use case pipes ordered by their priority.
-        
+
         '''
         pass
 
@@ -36,7 +39,7 @@ class IServiceProvider(ABC):
         Summary
         -------
         Retrieves the specified service from the dependency_injectior container.
-        
+
         Parameters
         ----------
         `service` The service to be retrieved.
@@ -44,7 +47,7 @@ class IServiceProvider(ABC):
         Returns
         -------
         An instance of the requested service type with a lifetime as defined on the container.
-        
+
         '''
         pass
 
@@ -53,17 +56,21 @@ class IUseCaseInvoker(ABC):
     '''The main engine of Clapy. Handles the invocation of use case pipelines and the execution of resulting actions.'''
 
     @abstractmethod
-    async def invoke_usecase_async(self, input_port: TInputPort, output_port: TOutputPort, pipeline_configuration: List[Type[IPipe]]) -> None:
+    async def invoke_usecase_async(
+            self,
+            input_port: TInputPort,
+            output_port: TOutputPort,
+            pipeline_configuration: List[Type[IPipe]]) -> None:
         '''
         Summary
         -------
         Performs the invocation of a use case with the provided input and output ports. Will stop
         invocation on receival of a coroutine result, or if the pipeline's pipes are exhausted.
-        
+
         Parameters
         ----------
         `input_port` The input port of the use case to be invoked\n
         `output_port` The output port of the use case to be invoked
-        
+
         '''
         pass

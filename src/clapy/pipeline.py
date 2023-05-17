@@ -14,7 +14,7 @@ class IPipe(Generic[TInputPort, TOutputPort], ABC):
         -------
         Defines the behaviour of the pipe when executed. Must return either a coroutine
         function (an output port method), or no result.
-        
+
         Parameters
         ----------
         `input_port` The input of the use case to be processed\n
@@ -23,7 +23,7 @@ class IPipe(Generic[TInputPort, TOutputPort], ABC):
         Returns
         -------
         `Coroutine` (a method of the output port) if the pipe has a result to return, otherwise `None`.
-        
+
         '''
         pass
 
@@ -38,7 +38,7 @@ class AuthorisationEnforcer(IPipe, Generic[TInputPort, TOutputPort]):
     pass
 
 
-#TODO: Should i have this still? maybe rename?
+# TODO: Should i have this still? maybe rename?
 # Don't forget it is in the README
 class BusinessRuleValidator(IPipe, Generic[TInputPort, TOutputPort]):
     '''Marks a class as a business rule validator pipe.'''
