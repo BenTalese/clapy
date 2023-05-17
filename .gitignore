@@ -9,3 +9,5 @@
 **/dist
 
 **/venv
+
+**/flake8_output.txt
