@@ -42,11 +42,14 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         An instance of the requested service type with a lifetime as defined on the container.
 
         '''
-        _ServiceName = self._generate_service_name(service)
+        _ServiceName, _GenerationSuccess = self._try_generate_service_name(service)
 
-        _Service = self._container.providers.get(_ServiceName)
-        if _Service is not None:
-            return _Service()
+        if _GenerationSuccess:
+            _Service = self._container.providers.get(_ServiceName)
+
+            if _Service is not None:
+                return _Service()
+            
         else:
             raise LookupError(f"Was not able to retrieve '{service.__name__}' from DI container.")
 
@@ -75,11 +78,13 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         Raises `DuplicateServiceError` if the dependency_injector container already contains a service of the same type.
 
         '''
-        _DependencyName = self._generate_service_name(interface_type if interface_type is not None else concrete_type)
+        _DependencyName, _GenerationSuccess = self._try_generate_service_name(interface_type or concrete_type)
+
+        if not _GenerationSuccess:
+            raise ValueError(f"Failed to generate service name for {interface_type or concrete_type}.")
 
         if hasattr(self._container, _DependencyName):
-            raise DuplicateServiceError(f"""An already registered service
-                is conflicting with {interface_type if interface_type is not None else concrete_type}.""")
+            raise DuplicateServiceError(f"An already registered service is conflicting with {interface_type or concrete_type}.")
 
         _ConstructorDependencies = [_Param for _Param in inspect.signature(concrete_type.__init__).parameters.values()
                                     if _Param.annotation != inspect.Parameter.empty
@@ -90,7 +95,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         else:
             _SubDependencies = []
             for _Dependency in _ConstructorDependencies:
-                _SubDependencyName = self._generate_service_name(_Dependency.annotation)
+                _SubDependencyName, _ = self._try_generate_service_name(_Dependency.annotation)
                 _SubDependencies.append(getattr(self._container, _SubDependencyName))
 
             setattr(self._container, _DependencyName, provider_method(concrete_type, *_SubDependencies, *args))
@@ -211,9 +216,9 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         True if the service could be found, false otherwise.
 
         '''
-        service_name, generation_success = self._try_generate_service_name(service)
+        _ServiceName, _GenerationSuccess = self._try_generate_service_name(service)
 
-        if generation_success:
-            return hasattr(self._container, service_name)
+        if _GenerationSuccess:
+            return hasattr(self._container, _ServiceName)
 
         return False
