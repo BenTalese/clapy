@@ -20,7 +20,8 @@ Test package by publishing to testpypi, then try and use it somewhere outside th
 Publish!
 '''
 
+
 class TestPipe(IPipe, Generic[TInputPort, TOutputPort]):
-    
+
     async def execute_async(self, input_port: Any, output_port: Any) -> Coroutine[Any, Any, Union[Coroutine, None]]:
         print("blah")

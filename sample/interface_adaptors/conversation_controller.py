@@ -11,5 +11,9 @@ class ConversationController:
     def __init__(self, use_case_invoker: IUseCaseInvoker):
         self._use_case_invoker = use_case_invoker
 
-    async def greet_async(self, input_port: GreetInputPort, output_port: IGreetOutputPort, pipeline_configuration: List[Type[IPipe]]):
+    async def greet_async(
+            self,
+            input_port: GreetInputPort,
+            output_port: IGreetOutputPort,
+            pipeline_configuration: List[Type[IPipe]]):
         await self._use_case_invoker.invoke_usecase_async(input_port, output_port, pipeline_configuration)
