@@ -11,3 +11,7 @@
 **/venv
 
 **/flake8_output.txt
+
+**/.coverage
+
+**/.tox
