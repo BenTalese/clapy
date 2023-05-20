@@ -49,7 +49,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
             if _Service is not None:
                 return _Service()
-            
+
         else:
             raise LookupError(f"Was not able to retrieve '{service.__name__}' from DI container.")
 
