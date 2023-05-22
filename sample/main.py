@@ -1,5 +1,6 @@
 import os
 import sys
+
 sys.path.append(os.getcwd())
 
 import asyncio
@@ -9,11 +10,9 @@ from dependency_injector import providers
 from sample.interface_adaptors.conversation_controller import \
     ConversationController
 from sample.interface_adaptors.greet_presenter import GreetPresenter
-from sample.pipeline.name_checker import NameChecker
-from sample.pipeline.test_pipe import TestPipe
+from sample.pipeline.pipeline_configuration import PipelineConfiguration
 from sample.use_cases.greet.greet_input_port import GreetInputPort
 from src.clapy.dependency_injection import DependencyInjectorServiceProvider
-from src.clapy.pipeline import Interactor
 
 
 async def main():
@@ -30,7 +29,7 @@ async def main():
 
     _Controller = _ServiceProvider.get_service(ConversationController)
 
-    await _Controller.greet_async(GreetInputPort("Ben"), GreetPresenter(), [NameChecker, TestPipe, Interactor])
+    await _Controller.greet_async(GreetInputPort("Ben"), GreetPresenter(), PipelineConfiguration.DefaultConfiguration)
 
 if __name__ == "__main__":
     asyncio.run(main())
