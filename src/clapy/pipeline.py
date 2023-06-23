@@ -1,18 +1,9 @@
 from abc import ABC, abstractmethod
+from collections import namedtuple
 from enum import Enum
-from typing import Any, Coroutine, Generic, Union
+from typing import Any, Coroutine, Generic, NamedTuple, Type, Union
 
 from .generics import TInputPort, TOutputPort
-
-
-class PipeConfigurationOption(Enum):
-    '''Determines the method to be used for adding a pipe when constructing the pipeline.'''
-
-    DEFAULT = "DEFAULT"
-    '''If found from searching the use case pipes, the pipe will be added, otherwise it is ignored.'''
-
-    INSERT = "INSERT"
-    '''Will insert the provided pipe at the specified location.'''
 
 
 class IPipe(Generic[TInputPort, TOutputPort], ABC):
@@ -37,6 +28,21 @@ class IPipe(Generic[TInputPort, TOutputPort], ABC):
 
         '''
         pass
+
+
+class PipeConfigurationOption(Enum):
+    '''Determines the method to be used for adding a pipe when constructing the pipeline.'''
+
+    DEFAULT = "DEFAULT"
+    '''If found from searching the use case pipes, the pipe will be added, otherwise it is ignored.'''
+
+    INSERT = "INSERT"
+    '''Will insert the provided pipe at the specified location.'''
+
+
+class PipeConfiguration(NamedTuple):
+    type: Type[IPipe]
+    option: PipeConfigurationOption
 
 
 class AuthenticationVerifier(IPipe):
