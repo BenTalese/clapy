@@ -50,8 +50,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
             if _Service is not None:
                 return _Service()
 
-        else:
-            raise LookupError(f"Was not able to retrieve '{service.__name__}' from DI container.")
+        raise LookupError(f"Was not able to retrieve '{service.__name__}' from DI container.")
 
     def register_service(
             self,
@@ -165,7 +164,6 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         An instance of the concrete implementation for the `IUseCaseInvoker`.
 
         '''
-        # TODO: this should be used in the demo and readme, but also explained
         _UsecaseRegistry = Engine.construct_usecase_registry(
             usecase_scan_locations,
             directory_exclusion_patterns,
