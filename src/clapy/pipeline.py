@@ -1,7 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Coroutine, Generic, Union
+from enum import Enum
+from typing import Any, Coroutine, Generic, Union
 
 from .generics import TInputPort, TOutputPort
+
+
+class PipeConfigurationOption(Enum):
+    '''Determines the method to be used for adding a pipe when constructing the pipeline.'''
+
+    DEFAULT = "DEFAULT"
+    '''If found from searching the use case pipes, the pipe will be added, otherwise it is ignored.'''
+
+    INSERT = "INSERT"
+    '''Will insert the provided pipe at the specified location.'''
 
 
 class IPipe(Generic[TInputPort, TOutputPort], ABC):
@@ -33,24 +44,17 @@ class AuthenticationVerifier(IPipe):
     pass
 
 
-class AuthorisationEnforcer(IPipe, Generic[TInputPort, TOutputPort]):
+class AuthorisationEnforcer(IPipe):
     '''Marks a class as an authorisation enforcer pipe.'''
     pass
 
 
-# TODO: Should i have this still? maybe rename?
-# Don't forget it is in the README
-class BusinessRuleValidator(IPipe, Generic[TInputPort, TOutputPort]):
-    '''Marks a class as a business rule validator pipe.'''
-    pass
-
-
-class EntityExistenceChecker(IPipe, Generic[TInputPort, TOutputPort]):
+class EntityExistenceChecker(IPipe):
     '''Marks a class as an entity existence checker pipe.'''
     pass
 
 
-class InputPortValidator(IPipe, Generic[TInputPort, TOutputPort]):
+class InputPortValidator(IPipe):
     '''Marks a class as an input port validator pipe.'''
     pass
 
@@ -60,6 +64,11 @@ class InputPort():
     pass
 
 
-class Interactor(IPipe, Generic[TInputPort, TOutputPort]):
+class Interactor(IPipe):
     '''Marks a class as an interactor pipe.'''
+    pass
+
+
+class PersistenceRuleValidator(IPipe):
+    '''Marks a class as a persistence rule validator pipe.'''
     pass
