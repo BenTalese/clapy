@@ -17,6 +17,11 @@ Change from beta to production in toml
 Test package locally
 Test package by publishing to testpypi, then try and use it somewhere outside this repo
 
+
+Problem: what happens if there's default implementations? (ANSWER: It takes the overridden behaviour if provided)
+TODO: Put as example in sample project and in readme, or do a separate readme for the sample project
+
+
 Publish!
 '''
 
