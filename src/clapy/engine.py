@@ -1,10 +1,15 @@
-import asyncio
+import asyncio # TODO: TIDY IMPORTS
+import bisect
+from collections import namedtuple
 import os
-from typing import Dict, List, Optional, Type
+import random
+from typing import Dict, List, NamedTuple, Optional, Tuple, Type
+
+from exceptions import PipeConfigurationError
 
 from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
 from .generics import TInputPort, TOutputPort
-from .pipeline import IPipe
+from .pipeline import IPipe, PipeConfiguration, PipeConfigurationOption
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
@@ -18,7 +23,7 @@ class PipelineFactory(IPipelineFactory):
     async def create_pipeline_async(
             self,
             input_port: TInputPort,
-            pipeline_configuration: List[Type[IPipe]]) -> List[Type[IPipe]]:
+            pipeline_configuration: List[PipeConfiguration]) -> List[Type[IPipe]]:
         '''
         Summary
         -------
@@ -42,25 +47,26 @@ class PipelineFactory(IPipelineFactory):
         if _UsecaseKey not in self._usecase_registry:
             raise KeyError(f"Could not find '{input_port}' in the pipeline registry.")
 
-        _PipeClasses = [Common.import_class_by_namespace(_Namespace)
-                        for _Namespace in self._usecase_registry[_UsecaseKey]]
+        _PipeServices = [self._service_provider.get_service(Common.import_class_by_namespace(_Namespace))
+                         for _Namespace in self._usecase_registry[_UsecaseKey]]
 
-        _PipeServices = [self._service_provider.get_service(_PipeClass) for _PipeClass in _PipeClasses]     # FIXME
-
-        _FilteredPipes = [_Pipe for _Pipe in _PipeServices if
-                          any(issubclass(_Pipe.__class__, _PipeType)
-                              for _PipeType in pipeline_configuration)]
+        _FilteredPipes = [_Pipe for _Pipe in _PipeServices
+                          if any(issubclass(type(_Pipe), _PipeConfig.type)
+                                 for _PipeConfig in pipeline_configuration
+                                 if _PipeConfig.option == PipeConfigurationOption.DEFAULT)]
 
         _SortedPipes = sorted(_FilteredPipes, key=lambda _Pipe:
-                              pipeline_configuration.index(next(_PipeType
-                                                                for _PipeType in pipeline_configuration
-                                                                if issubclass(_Pipe.__class__, _PipeType))))
+                              pipeline_configuration.index(next(_PipeConfig
+                                                                for _PipeConfig in pipeline_configuration
+                                                                if issubclass(type(_Pipe), _PipeConfig.type))))
 
-        _AdditionalPipes = [_ExtraPipe for _ExtraPipe in pipeline_configuration
-                            if not any(issubclass(_Pipe.__class__, _ExtraPipe) for _Pipe in _SortedPipes)]
+        _PipesToInsert = [self._service_provider.get_service(_ExtraPipe.type)
+                          for _ExtraPipe in pipeline_configuration
+                          if not any(issubclass(type(_Pipe), _ExtraPipe.type) for _Pipe in _PipeServices)
+                          and _ExtraPipe.option == PipeConfigurationOption.INSERT]
 
-        for _Pipe in _AdditionalPipes:
-            _SortedPipes.insert(pipeline_configuration.index(_Pipe), _Pipe())   # FIXME
+        for _Pipe in _PipesToInsert:
+            Engine._insert_pipe(_Pipe, _SortedPipes, pipeline_configuration)
 
         return _SortedPipes
 
@@ -75,7 +81,7 @@ class UseCaseInvoker(IUseCaseInvoker):
             self,
             input_port: TInputPort,
             output_port: TOutputPort,
-            pipeline_configuration: List[Type[IPipe]]) -> None:
+            pipeline_configuration: List[PipeConfiguration]) -> None: # TODO: Do i absolutely need "Type"? YES I DO, REMOVE FROM PLACES IT SHOULDN'T BE
         '''
         Summary
         -------
@@ -153,3 +159,36 @@ class Engine:
                     _UsecaseRegistry[_DirectoryNamespace] = _Pipes
 
         return _UsecaseRegistry
+
+    @staticmethod
+    def _insert_pipe(
+            new_pipe: IPipe,
+            pipeline: List[Type[IPipe]],
+            pipeline_configuration: List[PipeConfiguration]) -> None:
+        '''
+        TODO: Doc
+        '''
+        if not pipeline:
+            pipeline.append(new_pipe)
+            return
+
+        left_pipe_index = None # TODO: What if i insert multiple of the same type?
+        right_pipe_index = None
+
+        pipes_from_config = [pipe_config.type for pipe_config in pipeline_configuration]
+
+        for existing_pipe in pipeline:
+            existing_pipe_idx = pipes_from_config.index(next(p for p in pipes_from_config if issubclass(type(existing_pipe), p)))
+            new_pipe_index = pipes_from_config.index(type(new_pipe))
+
+            if existing_pipe_idx < new_pipe_index and (left_pipe_index is None or existing_pipe_idx > left_pipe_index):
+                left_pipe_index = pipeline.index(existing_pipe)
+            elif existing_pipe_idx > new_pipe_index and (right_pipe_index is None or existing_pipe_idx < right_pipe_index):
+                right_pipe_index = pipeline.index(existing_pipe)
+
+        if right_pipe_index is not None:
+            pipeline.insert(right_pipe_index, new_pipe)
+        elif left_pipe_index is not None:
+            pipeline.insert(left_pipe_index+1, new_pipe) #TODO: out of bounds??
+        else:
+            raise PipeConfigurationError(f"Failed to insert the pipe '{new_pipe}' into the pipeline.")
