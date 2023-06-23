@@ -41,40 +41,49 @@ class PipeConfigurationOption(Enum):
 
 
 class PipeConfiguration(NamedTuple):
+    '''
+    A named tuple representing the configuration for a pipe in a pipeline.
+
+    Attributes:
+        type (Type[IPipe]): The type of the pipe.
+        option (PipeConfigurationOption): The configuration option for the pipe.
+    '''
     type: Type[IPipe]
     option: PipeConfigurationOption
 
 
 class AuthenticationVerifier(IPipe):
-    '''Marks a class as an authentication verifier pipe.'''
+    '''Marks a class as an authentication verifier pipe. Used to force a consumer to be authenticated.'''
     pass
 
 
 class AuthorisationEnforcer(IPipe):
-    '''Marks a class as an authorisation enforcer pipe.'''
+    '''Marks a class as an authorisation enforcer pipe. Used to enforce permission business rules.'''
     pass
 
 
 class EntityExistenceChecker(IPipe):
-    '''Marks a class as an entity existence checker pipe.'''
+    '''Marks a class as an entity existence checker pipe. Used to verify
+    entities exist before performing operations on them.'''
     pass
 
 
 class InputPortValidator(IPipe):
-    '''Marks a class as an input port validator pipe.'''
+    '''Marks a class as an input port validator pipe. Used to enforce integrity and correctness of input data.'''
     pass
 
 
-class InputPort():
-    '''Marks a class as an input port (not an implementation of IPipe).'''
+class InputPort:
+    '''Marks a class as an input port (not an implementation of IPipe). The entry point for all use cases.'''
     pass
 
 
 class Interactor(IPipe):
-    '''Marks a class as an interactor pipe.'''
+    '''Marks a class as an interactor pipe. Performs the main action of the use case.'''
     pass
 
 
 class PersistenceRuleValidator(IPipe):
-    '''Marks a class as a persistence rule validator pipe.'''
+    '''Marks a class as a persistence rule validator pipe. Used to enforce
+    data integrity business rules via a persistence store.'''
     pass
