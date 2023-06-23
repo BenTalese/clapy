@@ -16,14 +16,14 @@ class IAuthenticationOutputPort(ABC):
 class IAuthorisationOutputPort(Generic[TAuthorisationFailure], ABC):
     '''An output port for when authorisation is required by the use case.'''
 
-    @abstractmethod     # TODO: Not sure the async keyword is needed really...
+    @abstractmethod
     async def present_unauthorised_async(self, authorisation_failure: TAuthorisationFailure) -> None:
         '''Presents an authorisation failure.'''
         pass
 
 
 class IValidationOutputPort(Generic[TValidationFailure], ABC):
-    '''An output port for when validation is required.'''
+    '''An output port for when validation is required by the use case.'''
 
     @abstractmethod
     async def present_validation_failure_async(self, validation_failure: TValidationFailure) -> None:
