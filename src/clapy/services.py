@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Type
 
 from .generics import TInputPort, TOutputPort, TServiceType
-from .pipeline import IPipe
+from .pipeline import IPipe, PipeConfiguration
 
 
 class IPipelineFactory(ABC):
@@ -12,15 +12,17 @@ class IPipelineFactory(ABC):
     async def create_pipeline_async(
             self,
             input_port: TInputPort,
-            pipeline_configuration: List[Type[IPipe]]) -> List[Type[IPipe]]:
+            pipeline_configuration: List[PipeConfiguration]) -> List[Type[IPipe]]:
         '''
         Summary
         -------
-        Creates a list of IPipe objects, sorted by priority, for a use case based on the input port provided.
+        Creates a sorted list of IPipe objects based on the use case input port and pipeline
+        configuration provided.
 
         Parameters
         ----------
-        `input_port` The input port of the use case to construct the pipeline for
+        `input_port` The input port of the use case to construct the pipeline for\n
+        `pipeline_configuration` The configuration used to determine order and inclusion of pipes
 
         Returns
         -------
@@ -70,7 +72,9 @@ class IUseCaseInvoker(ABC):
         Parameters
         ----------
         `input_port` The input port of the use case to be invoked\n
-        `output_port` The output port of the use case to be invoked
+        `output_port` The output port of the use case to be invoked\n
+        `pipeline_configuration` The configuration used to determine priority and inclusion of
+        use case pipes
 
         '''
         pass
