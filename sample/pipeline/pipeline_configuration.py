@@ -1,5 +1,5 @@
 from enum import Enum
-from src.clapy.pipeline import InputPortValidator, Interactor, PipeConfigurationOption
+from src.clapy.pipeline import InputPortValidator, Interactor, PipeConfiguration, PipeConfigurationOption
 from sample.pipeline.name_checker import NameChecker
 from sample.pipeline.test_pipe import TestPipe
 
@@ -7,13 +7,13 @@ from sample.pipeline.test_pipe import TestPipe
 class PipelineConfiguration(Enum):
 
     DefaultConfiguration = [
-        (NameChecker, PipeConfigurationOption.DEFAULT),
-        (Interactor, PipeConfigurationOption.DEFAULT)
+        PipeConfiguration(NameChecker, PipeConfigurationOption.DEFAULT),
+        PipeConfiguration(Interactor, PipeConfigurationOption.DEFAULT)
     ]
 
     OtherConfiguration = [
-        (NameChecker, PipeConfigurationOption.DEFAULT),
-        (InputPortValidator, PipeConfigurationOption.DEFAULT),
-        (TestPipe, PipeConfigurationOption.INSERT),
-        (Interactor, PipeConfigurationOption.DEFAULT)
+        PipeConfiguration(NameChecker, PipeConfigurationOption.DEFAULT),
+        PipeConfiguration(InputPortValidator, PipeConfigurationOption.DEFAULT),
+        PipeConfiguration(TestPipe, PipeConfigurationOption.INSERT),
+        PipeConfiguration(Interactor, PipeConfigurationOption.DEFAULT)
     ]
