@@ -1,13 +1,9 @@
-import asyncio # TODO: TIDY IMPORTS
-import bisect
-from collections import namedtuple
+import asyncio
 import os
-import random
-from typing import Dict, List, NamedTuple, Optional, Tuple, Type
-
-from exceptions import PipeConfigurationError
+from typing import Dict, List, Optional, Type
 
 from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
+from .exceptions import PipeConfigurationError
 from .generics import TInputPort, TOutputPort
 from .pipeline import IPipe, PipeConfiguration, PipeConfigurationOption
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
@@ -27,11 +23,13 @@ class PipelineFactory(IPipelineFactory):
         '''
         Summary
         -------
-        Creates a list of IPipe objects, sorted by priority, for a use case based on the input port provided.
+        Creates a sorted list of IPipe objects based on the use case input port and pipeline
+        configuration provided.
 
         Parameters
         ----------
-        `input_port` The input port of the use case to construct the pipeline for
+        `input_port` The input port of the use case to construct the pipeline for\n
+        `pipeline_configuration` The configuration used to determine order and inclusion of pipes
 
         Exceptions
         ----------
@@ -60,13 +58,13 @@ class PipelineFactory(IPipelineFactory):
                                                                 for _PipeConfig in pipeline_configuration
                                                                 if issubclass(type(_Pipe), _PipeConfig.type))))
 
-        _PipesToInsert = [self._service_provider.get_service(_ExtraPipe.type)
-                          for _ExtraPipe in pipeline_configuration
+        _PipesToInsert = [(self._service_provider.get_service(_ExtraPipe.type), _Index)
+                          for _Index, _ExtraPipe in enumerate(pipeline_configuration)
                           if not any(issubclass(type(_Pipe), _ExtraPipe.type) for _Pipe in _PipeServices)
                           and _ExtraPipe.option == PipeConfigurationOption.INSERT]
 
-        for _Pipe in _PipesToInsert:
-            Engine._insert_pipe(_Pipe, _SortedPipes, pipeline_configuration)
+        for _PipeService, _Priority in _PipesToInsert:
+            Engine._insert_pipe(_PipeService, _Priority, _SortedPipes, pipeline_configuration)
 
         return _SortedPipes
 
@@ -81,7 +79,7 @@ class UseCaseInvoker(IUseCaseInvoker):
             self,
             input_port: TInputPort,
             output_port: TOutputPort,
-            pipeline_configuration: List[PipeConfiguration]) -> None: # TODO: Do i absolutely need "Type"? YES I DO, REMOVE FROM PLACES IT SHOULDN'T BE
+            pipeline_configuration: List[PipeConfiguration]) -> None:
         '''
         Summary
         -------
@@ -91,7 +89,9 @@ class UseCaseInvoker(IUseCaseInvoker):
         Parameters
         ----------
         `input_port` The input port of the use case to be invoked\n
-        `output_port` The output port of the use case to be invoked
+        `output_port` The output port of the use case to be invoked\n
+        `pipeline_configuration` The configuration used to determine priority and inclusion of
+        use case pipes.
 
         '''
         _Pipeline = await self._pipeline_factory.create_pipeline_async(input_port, pipeline_configuration)
@@ -134,16 +134,13 @@ class Engine:
         pipes found under that use case folder.
 
         '''
-        directory_exclusion_patterns = directory_exclusion_patterns + DIR_EXCLUSIONS
-        file_exclusion_patterns = file_exclusion_patterns + FILE_EXCLUSIONS
-
         _UsecaseRegistry = {}
 
         for _Location in usecase_locations:
             for _Root, _Directories, _Files in os.walk(_Location):
 
-                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns)
-                Common.apply_exclusion_filter(_Files, file_exclusion_patterns)
+                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
+                Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
 
                 _DirectoryNamespace = _Root.replace('/', '.').lstrip(".")
                 _Pipes = []
@@ -163,32 +160,46 @@ class Engine:
     @staticmethod
     def _insert_pipe(
             new_pipe: IPipe,
+            new_pipe_priority: int,
             pipeline: List[Type[IPipe]],
             pipeline_configuration: List[PipeConfiguration]) -> None:
         '''
-        TODO: Doc
+        Summary
+        -------
+        Inserts a new pipe into the pipeline based on the specified configuration.
+
+        Parameters
+        ----------
+        `new_pipe` The new pipe to be inserted into the pipeline.\n
+        `new_pipe_priority` The order the pipe appears in the pipeline configuration.\n
+        `pipeline` The current pipeline, represented as a list of pipe types.\n
+        `pipeline_configuration` The configuration of the pipeline, specifying the order and types of pipes.
+
+        Exceptions
+        ----------
+        Raises a `PipeConfigurationError` if the new pipe cannot be inserted into the pipeline.
+
         '''
         if not pipeline:
             pipeline.append(new_pipe)
             return
 
-        left_pipe_index = None # TODO: What if i insert multiple of the same type?
+        left_pipe_index = None
         right_pipe_index = None
 
         pipes_from_config = [pipe_config.type for pipe_config in pipeline_configuration]
 
         for existing_pipe in pipeline:
             existing_pipe_idx = pipes_from_config.index(next(p for p in pipes_from_config if issubclass(type(existing_pipe), p)))
-            new_pipe_index = pipes_from_config.index(type(new_pipe))
 
-            if existing_pipe_idx < new_pipe_index and (left_pipe_index is None or existing_pipe_idx > left_pipe_index):
+            if existing_pipe_idx < new_pipe_priority and (left_pipe_index is None or existing_pipe_idx > left_pipe_index):
                 left_pipe_index = pipeline.index(existing_pipe)
-            elif existing_pipe_idx > new_pipe_index and (right_pipe_index is None or existing_pipe_idx < right_pipe_index):
+            elif existing_pipe_idx > new_pipe_priority and (right_pipe_index is None or existing_pipe_idx < right_pipe_index):
                 right_pipe_index = pipeline.index(existing_pipe)
 
         if right_pipe_index is not None:
             pipeline.insert(right_pipe_index, new_pipe)
         elif left_pipe_index is not None:
-            pipeline.insert(left_pipe_index+1, new_pipe) #TODO: out of bounds??
+            pipeline.insert(left_pipe_index+1, new_pipe)
         else:
             raise PipeConfigurationError(f"Failed to insert the pipe '{new_pipe}' into the pipeline.")
