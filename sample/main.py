@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 
 sys.path.append(os.getcwd())
@@ -24,7 +25,7 @@ async def main():
     _UsecaseScanLocations = ["sample/use_cases"]
 
     # TODO: Still feels retarded that the user can get clapy to scan absolutely everywhere
-    _ServiceProvider.register_usecase_services(_UsecaseScanLocations, [r"venv", r"src"], [r".*main\.py"])
+    _ServiceProvider.register_pipe_services(_UsecaseScanLocations, [r"venv", r"src"], [r".*main\.py"])
     _ServiceProvider.construct_usecase_invoker(_UsecaseScanLocations)
 
     _ServiceProvider.register_service(providers.Factory, ConversationController)
@@ -32,7 +33,7 @@ async def main():
 
     _Controller = _ServiceProvider.get_service(ConversationController)
 
-    await _Controller.greet_async(GreetInputPort("Ben"), GreetPresenter(), PipelineConfiguration.DefaultConfiguration.value)
+    await _Controller.greet_async(GreetInputPort("Ben"), GreetPresenter(), PipelineConfiguration.OtherConfiguration.value)
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -16,7 +16,7 @@ from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 class DependencyInjectorServiceProvider(IServiceProvider):
     '''
     Clapy's default service provider implementation for using Clapy with dependency_injector. Uses
-    DeclarativeContainer from dependency_injector.
+    the DeclarativeContainer from dependency_injector.
 
     '''
 
@@ -27,7 +27,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         '''
         Summary
         -------
-        Retrieves the specified service from the dependency_injectior container.
+        Retrieves the specified service from the dependency_injector container.
 
         Parameters
         ----------
@@ -74,7 +74,8 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
         Exceptions
         ----------
-        Raises `DuplicateServiceError` if the dependency_injector container already contains a service of the same type.
+        Raises `DuplicateServiceError` if the dependency_injector container already contains a service of the same type.\n
+        Raises `ValueError` if unable to generate a service name for the service.
 
         '''
         _DependencyName, _GenerationSuccess = self._try_generate_service_name(interface_type or concrete_type)
@@ -99,7 +100,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
             setattr(self._container, _DependencyName, provider_method(concrete_type, *_SubDependencies, *args))
 
-    def register_usecase_services(
+    def register_pipe_services(
             self,
             usecase_scan_locations: Optional[List[str]] = ["."],
             directory_exclusion_patterns: Optional[List[str]] = [],
@@ -121,15 +122,11 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         from being scanned and registered.
 
         '''
-        # TODO: can this directly be done inside apply_exclusion_filter parameter?
-        directory_exclusion_patterns = directory_exclusion_patterns + DIR_EXCLUSIONS
-        file_exclusion_patterns = file_exclusion_patterns + FILE_EXCLUSIONS
-
         for _Location in usecase_scan_locations:
             for _Root, _Directories, _Files in os.walk(_Location):
 
-                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns)
-                Common.apply_exclusion_filter(_Files, file_exclusion_patterns)
+                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
+                Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
 
                 for _File in _Files:
                     _Namespace = (_Root.replace('/', '.') + "." + _File[:-3]).lstrip(".")
@@ -181,11 +178,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
         Parameters
         ----------
-        `service` The service to generate a name for.
-
-        Exceptions
-        ----------
-        Raises a `ValueError` if the method fails to extract the fully qualified name of the service.
+        `service` The service to generate a name for and true on success, otherwise empty string and false.
 
         Returns
         -------

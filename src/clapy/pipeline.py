@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from enum import Enum
-from typing import Any, Coroutine, Generic, NamedTuple, Type, Union
+from typing import Coroutine, Generic, NamedTuple, Type, Union
 
 from .generics import TInputPort, TOutputPort
 

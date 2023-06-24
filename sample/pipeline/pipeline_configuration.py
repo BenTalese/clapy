@@ -13,7 +13,9 @@ class PipelineConfiguration(Enum):
 
     OtherConfiguration = [
         PipeConfiguration(NameChecker, PipeConfigurationOption.DEFAULT),
+        PipeConfiguration(TestPipe, PipeConfigurationOption.INSERT),
         PipeConfiguration(InputPortValidator, PipeConfigurationOption.DEFAULT),
         PipeConfiguration(TestPipe, PipeConfigurationOption.INSERT),
-        PipeConfiguration(Interactor, PipeConfigurationOption.DEFAULT)
+        PipeConfiguration(Interactor, PipeConfigurationOption.DEFAULT),
+        PipeConfiguration(TestPipe, PipeConfigurationOption.INSERT)
     ]
