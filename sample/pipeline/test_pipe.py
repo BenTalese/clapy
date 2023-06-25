@@ -5,10 +5,8 @@ from src.clapy.pipeline import IPipe
 
 '''
 TODO:
-Update docs everywhere
 Look into doctest
 Update readme
-Either learn how to use github workflow, or remove it
 Unit tests
 Demo doing "can invoke use case"
 Demo doing bulk actions (so cut out unnecessary steps)

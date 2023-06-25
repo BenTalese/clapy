@@ -21,10 +21,8 @@ from src.clapy.dependency_injection import DependencyInjectorServiceProvider
 async def main():
     _ServiceProvider = DependencyInjectorServiceProvider()
 
-    # TODO: Let user know it starts scanning from top of project, also put in docs
     _UsecaseScanLocations = ["sample/use_cases"]
 
-    # TODO: Still feels retarded that the user can get clapy to scan absolutely everywhere
     _ServiceProvider.register_pipe_services(_UsecaseScanLocations, [r"venv", r"src"], [r".*main\.py"])
     _ServiceProvider.construct_usecase_invoker(_UsecaseScanLocations)
 

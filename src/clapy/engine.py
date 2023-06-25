@@ -108,6 +108,7 @@ class UseCaseInvoker(IUseCaseInvoker):
 
 
 class Engine:
+
     @staticmethod
     def construct_usecase_registry(
             usecase_locations: Optional[List[str]] = ["."],
