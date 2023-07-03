@@ -1,11 +1,13 @@
 import asyncio
+import importlib
+import inspect
 import os
 from typing import Dict, List, Optional, Type
 
 from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
 from .exceptions import PipeConfigurationError
 from .generics import TInputPort, TOutputPort
-from .pipeline import IPipe, PipeConfiguration, PipeConfigurationOption
+from .pipeline import IPipe, InputPort, PipeConfiguration, PipeConfigurationOption
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
@@ -115,6 +117,7 @@ class Engine:
             directory_exclusion_patterns: Optional[List[str]] = [],
             file_exclusion_patterns: Optional[List[str]] = []) -> Dict[str, List[str]]:
         '''
+        TODO: DOC CHANGE
         Summary
         -------
         Scans the provided project location, or entire project if no location provided, for use
@@ -138,25 +141,60 @@ class Engine:
         _UsecaseRegistry = {}
 
         for _Location in usecase_locations:
-            for _Root, _Directories, _Files in os.walk(_Location):
+            _Classes = Engine._get_all_classes(_Location, directory_exclusion_patterns, file_exclusion_patterns)
 
-                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
-                Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
+            _InputPortClasses = []
+            _PipeClasses = []
 
-                _DirectoryNamespace = _Root.replace('/', '.').lstrip(".")
-                _Pipes = []
+            for _Class in _Classes:
+                if issubclass(_Class, InputPort) and _Class != InputPort and _Class not in _InputPortClasses:
+                    _InputPortClasses.append(_Class)
 
-                for _File in _Files:
-                    _Namespace = _DirectoryNamespace + "." + _File[:-3]
-                    _Class = Common.import_class_by_namespace(_Namespace)
+                if issubclass(_Class, IPipe) and _Class not in _PipeClasses:
+                    _PipeClasses.append(_Class)
 
-                    if issubclass(_Class, IPipe):
-                        _Pipes.append(_Namespace)
+            for _Pipe in _PipeClasses:
+                _ExecuteAsyncMethod = next((_Function for _Name, _Function
+                                            in inspect.getmembers(_Pipe, inspect.isfunction)
+                                            if _Name == IPipe.execute_async.__name__), None)
 
-                if _Pipes:
-                    _UsecaseRegistry[_DirectoryNamespace] = _Pipes
+                _InputPortParam = next((_Param for _Param
+                                   in inspect.signature(_ExecuteAsyncMethod).parameters.values()
+                                   if _Param.annotation != inspect.Parameter.empty
+                                   and _Param.annotation in _InputPortClasses), None)
+
+                if _InputPortParam:
+                    _UsecaseKey = inspect.getsourcefile(next(_Class for _Class
+                                                             in _InputPortClasses
+                                                             if type(_Class) == type(_InputPortParam.annotation)))
+                    if _UsecaseKey:
+                        _UsecaseRegistry.setdefault(_UsecaseKey, []).append(_Pipe)
+                    else:
+                        raise ModuleNotFoundError(f"Could not get the source file of {_Pipe}.")
 
         return _UsecaseRegistry
+
+    @staticmethod
+    def _get_all_classes(location, directory_exclusion_patterns, file_exclusion_patterns):
+        '''
+        TODO: DOC
+        '''
+        _Classes = []
+
+        for _Root, _Directories, _Files in os.walk(location):
+
+            Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
+            Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
+
+            _DirectoryNamespace = _Root.replace('/', '.').lstrip(".")
+
+            for _File in _Files:
+                _Namespace = _DirectoryNamespace + "." + _File[:-3]
+                _Module = importlib.import_module(_Namespace, package=None)
+                for _Name, _Class in inspect.getmembers(_Module, inspect.isclass):
+                    _Classes.append(_Class)
+
+        return _Classes
 
     @staticmethod
     def _insert_pipe(
