@@ -42,7 +42,7 @@ class PipelineFactory(IPipelineFactory):
         The pipeline consisting of the use case pipes ordered by their priority.
 
         '''
-        _UsecaseKey = input_port.__module__.rsplit(".", 1)[0]
+        _UsecaseKey = input_port.__module__
 
         if _UsecaseKey not in self._usecase_registry:
             raise KeyError(f"Could not find '{input_port}' in the pipeline registry.")
@@ -141,60 +141,39 @@ class Engine:
         _UsecaseRegistry = {}
 
         for _Location in usecase_locations:
-            _Classes = Engine._get_all_classes(_Location, directory_exclusion_patterns, file_exclusion_patterns)
+            _ClassesWithNamespaces = Common.get_all_classes(_Location, directory_exclusion_patterns, file_exclusion_patterns)
 
-            _InputPortClasses = []
-            _PipeClasses = []
+            _InputPortClassesWithNamespaces = []
+            _PipeClassesWithNamespaces = []
 
-            for _Class in _Classes:
-                if issubclass(_Class, InputPort) and _Class != InputPort and _Class not in _InputPortClasses:
-                    _InputPortClasses.append(_Class)
+            #TODO: NamedTuple
+            for _ClassNamespace in _ClassesWithNamespaces:
+                if issubclass(_ClassNamespace[0], InputPort) and _ClassNamespace[0] != InputPort and _ClassNamespace not in _InputPortClassesWithNamespaces:
+                    _InputPortClassesWithNamespaces.append(_ClassNamespace)
 
-                if issubclass(_Class, IPipe) and _Class not in _PipeClasses:
-                    _PipeClasses.append(_Class)
+                if issubclass(_ClassNamespace[0], IPipe) and _ClassNamespace not in _PipeClassesWithNamespaces:
+                    _PipeClassesWithNamespaces.append(_ClassNamespace)
 
-            for _Pipe in _PipeClasses:
+            for _PipeNamespace in _PipeClassesWithNamespaces:
                 _ExecuteAsyncMethod = next((_Function for _Name, _Function
-                                            in inspect.getmembers(_Pipe, inspect.isfunction)
+                                            in inspect.getmembers(_PipeNamespace[0], inspect.isfunction)
                                             if _Name == IPipe.execute_async.__name__), None)
 
                 _InputPortParam = next((_Param for _Param
                                    in inspect.signature(_ExecuteAsyncMethod).parameters.values()
                                    if _Param.annotation != inspect.Parameter.empty
-                                   and _Param.annotation in _InputPortClasses), None)
+                                   and any(_InputPortNamespace[0] is _Param.annotation for _InputPortNamespace in _InputPortClassesWithNamespaces)), None)
 
                 if _InputPortParam:
-                    _UsecaseKey = inspect.getsourcefile(next(_Class for _Class
-                                                             in _InputPortClasses
-                                                             if type(_Class) == type(_InputPortParam.annotation)))
+                    _UsecaseKey = next(_InputPortNamespace[1] for _InputPortNamespace
+                                       in _InputPortClassesWithNamespaces
+                                       if type(_InputPortNamespace[0]) == type(_InputPortParam.annotation))
                     if _UsecaseKey:
-                        _UsecaseRegistry.setdefault(_UsecaseKey, []).append(_Pipe)
+                        _UsecaseRegistry.setdefault(_UsecaseKey, []).append(_PipeNamespace[1])
                     else:
-                        raise ModuleNotFoundError(f"Could not get the source file of {_Pipe}.")
+                        raise ModuleNotFoundError(f"Could not get the source file of {_PipeNamespace[0]}.")
 
         return _UsecaseRegistry
-
-    @staticmethod
-    def _get_all_classes(location, directory_exclusion_patterns, file_exclusion_patterns):
-        '''
-        TODO: DOC
-        '''
-        _Classes = []
-
-        for _Root, _Directories, _Files in os.walk(location):
-
-            Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
-            Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
-
-            _DirectoryNamespace = _Root.replace('/', '.').lstrip(".")
-
-            for _File in _Files:
-                _Namespace = _DirectoryNamespace + "." + _File[:-3]
-                _Module = importlib.import_module(_Namespace, package=None)
-                for _Name, _Class in inspect.getmembers(_Module, inspect.isclass):
-                    _Classes.append(_Class)
-
-        return _Classes
 
     @staticmethod
     def _insert_pipe(
