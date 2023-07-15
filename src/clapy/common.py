@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import os
 import re
 from typing import List
 
@@ -86,3 +87,23 @@ class Common:
         '''
         for _ExclusionPattern in exclusion_patterns:
             collection[:] = [_Item for _Item in collection if not re.match(_ExclusionPattern, _Item)]
+
+    @staticmethod
+    def get_all_classes(location, directory_exclusion_patterns, file_exclusion_patterns): # TODO: Return type
+        '''
+        TODO: DOC
+        '''
+        _ClassesWithNamespaces = []
+
+        for _Root, _Directories, _Files in os.walk(location):
+
+            Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
+            Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
+
+            for _File in _Files:
+                _Namespace = _Root.replace('/', '.').lstrip(".") + "." + _File[:-3]
+                _Module = importlib.import_module(_Namespace, package=None)
+                for _Name, _Class in inspect.getmembers(_Module, inspect.isclass):
+                    _ClassesWithNamespaces.append((_Class, _Namespace)) #TODO: Named tuple
+
+        return _ClassesWithNamespaces

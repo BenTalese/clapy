@@ -123,17 +123,11 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
         '''
         for _Location in usecase_scan_locations:
-            for _Root, _Directories, _Files in os.walk(_Location):
+            _ClassesWithNamespaces = Common.get_all_classes(_Location, directory_exclusion_patterns, file_exclusion_patterns)
 
-                Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
-                Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
-
-                for _File in _Files:
-                    _Namespace = (_Root.replace('/', '.') + "." + _File[:-3]).lstrip(".")
-                    _Class = Common.import_class_by_namespace(_Namespace)
-
-                    if issubclass(_Class, IPipe):
-                        self.register_service(providers.Factory, _Class)
+            for _ClassNamespace in _ClassesWithNamespaces:
+                if issubclass(_ClassNamespace[0], IPipe):
+                    self.register_service(providers.Factory, _ClassNamespace[0]) #TODO: NamedTuple
 
     def construct_usecase_invoker(
             self,
