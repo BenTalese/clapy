@@ -98,15 +98,18 @@ class UseCaseInvoker(IUseCaseInvoker):
         '''
         _Pipeline = await self._pipeline_factory.create_pipeline_async(input_port, pipeline_configuration)
 
-        _PipelineResult = None
-        while _PipelineResult is None and len(_Pipeline) > 0:
+        _PipelineShouldContinue = True
+        while _PipelineShouldContinue and len(_Pipeline) > 0:
 
             _Pipe = _Pipeline.pop(0)
 
-            _PipelineResult = await _Pipe.execute_async(input_port, output_port)
+            await _Pipe.execute_async(input_port, output_port)
 
-            if asyncio.iscoroutine(_PipelineResult):
-                await _PipelineResult
+            _ShouldIgnoreFailures = next(pipe_config.should_ignore_failures
+                                         for pipe_config in pipeline_configuration
+                                         if issubclass(type(_Pipe), pipe_config.type))
+
+            _PipelineShouldContinue = not _Pipe.has_failures or _ShouldIgnoreFailures
 
 
 class Engine:
