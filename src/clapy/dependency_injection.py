@@ -1,11 +1,10 @@
 import inspect
-import os
 import re
 from typing import List, Optional, Tuple, Type
 
 from dependency_injector import containers, providers
 
-from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
+from .common import Common
 from .engine import Engine, PipelineFactory, UseCaseInvoker
 from .exceptions import DuplicateServiceError
 from .generics import TServiceType
@@ -109,8 +108,8 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         Summary
         -------
         Scans and registers use case pipes under the specified locations to the dependency_injector
-        container. There must be a class within the file that matches by name. For this class to be
-        registered, it must also implement the IPipe interface. Registered using providers.Factory.
+        container. For this class to be registered, it must implement the IPipe interface. Registered
+        using `providers.Factory`.
 
         Parameters
         ----------
@@ -127,7 +126,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
             for _ClassNamespace in _ClassesWithNamespaces:
                 if issubclass(_ClassNamespace[0], IPipe):
-                    self.register_service(providers.Factory, _ClassNamespace[0]) #TODO: NamedTuple
+                    self.register_service(providers.Factory, _ClassNamespace[0])
 
     def construct_usecase_invoker(
             self,
