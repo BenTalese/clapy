@@ -1,20 +1,18 @@
-import asyncio
-import importlib
 import inspect
-import os
 from typing import Dict, List, Optional, Type
 
-from .common import DIR_EXCLUSIONS, FILE_EXCLUSIONS, Common
+from .common import Common
 from .exceptions import PipeConfigurationError
 from .generics import TInputPort, TOutputPort
-from .pipeline import IPipe, InputPort, PipeConfiguration, PipeConfigurationOption
+from .pipeline import (InputPort, IPipe, PipeConfiguration,
+                       PipeConfigurationOption)
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 
 class PipelineFactory(IPipelineFactory):
     '''Responsible for creating the pipeline for the use case invoker to execute.'''
 
-    def __init__(self, service_provider: IServiceProvider, usecase_registry: Dict[str, List[Type[IPipe]]]):
+    def __init__(self, service_provider: IServiceProvider, usecase_registry: Dict[str, List[str]]):
         self._service_provider = service_provider or ValueError("service_provider cannot be None.")
         self._usecase_registry = usecase_registry or ValueError("usecase_registry cannot be None.")
 
@@ -72,7 +70,7 @@ class PipelineFactory(IPipelineFactory):
 
 
 class UseCaseInvoker(IUseCaseInvoker):
-    '''The main engine of Clapy. Handles the invocation of use case pipelines and the execution of resulting actions.'''
+    '''The main engine of Clapy. Handles the invocation of use case pipelines.'''
 
     def __init__(self, pipeline_factory: IPipelineFactory):
         self._pipeline_factory = pipeline_factory or ValueError("pipeline_factory cannot be None.")
@@ -86,7 +84,7 @@ class UseCaseInvoker(IUseCaseInvoker):
         Summary
         -------
         Performs the invocation of a use case with the provided input and output ports. Will stop
-        invocation on receival of a coroutine result, or if the pipeline's pipes are exhausted.
+        the pipeline if the pipeline's pipes are exhausted, or on pipe failure unless configured to ignore.
 
         Parameters
         ----------
@@ -113,6 +111,7 @@ class UseCaseInvoker(IUseCaseInvoker):
 
 
 class Engine:
+    '''Helper methods for constructing the use case registry and use case pipelines.'''
 
     @staticmethod
     def construct_usecase_registry(
@@ -120,11 +119,10 @@ class Engine:
             directory_exclusion_patterns: Optional[List[str]] = [],
             file_exclusion_patterns: Optional[List[str]] = []) -> Dict[str, List[str]]:
         '''
-        TODO: DOC CHANGE
         Summary
         -------
         Scans the provided project location, or entire project if no location provided, for use
-        cases and builds a dictonary of use cases and the associated use case's pipes by their namespace.
+        cases and builds a dictonary of use case pipes grouped by their matching input port.
 
         Parameters
         ----------
@@ -137,8 +135,8 @@ class Engine:
 
         Returns
         -------
-        A dictionary with the key being the namespace of the use case folder, and value being a list of use case
-        pipes found under that use case folder.
+        A dictionary with the key being the fully qualified namespace of the use case input port, and value being
+        a list of fully qualified namespaces of the matching use case pipes found in that location.
 
         '''
         _UsecaseRegistry = {}
@@ -149,9 +147,10 @@ class Engine:
             _InputPortClassesWithNamespaces = []
             _PipeClassesWithNamespaces = []
 
-            #TODO: NamedTuple
             for _ClassNamespace in _ClassesWithNamespaces:
-                if issubclass(_ClassNamespace[0], InputPort) and _ClassNamespace[0] != InputPort and _ClassNamespace not in _InputPortClassesWithNamespaces:
+                if (issubclass(_ClassNamespace[0], InputPort)
+                    and _ClassNamespace[0] != InputPort
+                    and _ClassNamespace not in _InputPortClassesWithNamespaces):
                     _InputPortClassesWithNamespaces.append(_ClassNamespace)
 
                 if issubclass(_ClassNamespace[0], IPipe) and _ClassNamespace not in _PipeClassesWithNamespaces:
@@ -165,7 +164,8 @@ class Engine:
                 _InputPortParam = next((_Param for _Param
                                    in inspect.signature(_ExecuteAsyncMethod).parameters.values()
                                    if _Param.annotation != inspect.Parameter.empty
-                                   and any(_InputPortNamespace[0] is _Param.annotation for _InputPortNamespace in _InputPortClassesWithNamespaces)), None)
+                                   and any(_InputPortNamespace[0] is _Param.annotation
+                                           for _InputPortNamespace in _InputPortClassesWithNamespaces)), None)
 
                 if _InputPortParam:
                     _UsecaseKey = next(_InputPortNamespace[1] for _InputPortNamespace
@@ -205,22 +205,22 @@ class Engine:
             pipeline.append(new_pipe)
             return
 
-        left_pipe_index = None
-        right_pipe_index = None
+        _LeftPipeIndex = None
+        _RightPipeIndex = None
 
-        pipes_from_config = [pipe_config.type for pipe_config in pipeline_configuration]
+        _PipesFromConfig = [pipe_config.type for pipe_config in pipeline_configuration]
 
-        for existing_pipe in pipeline:
-            existing_pipe_idx = pipes_from_config.index(next(p for p in pipes_from_config if issubclass(type(existing_pipe), p)))
+        for _ExistingPipe in pipeline:
+            _ExistingPipeIdx = _PipesFromConfig.index(next(_Pipe for _Pipe in _PipesFromConfig if issubclass(type(_ExistingPipe), _Pipe)))
 
-            if existing_pipe_idx < new_pipe_priority and (left_pipe_index is None or existing_pipe_idx > left_pipe_index):
-                left_pipe_index = pipeline.index(existing_pipe)
-            elif existing_pipe_idx > new_pipe_priority and (right_pipe_index is None or existing_pipe_idx < right_pipe_index):
-                right_pipe_index = pipeline.index(existing_pipe)
+            if _ExistingPipeIdx < new_pipe_priority and (_LeftPipeIndex is None or _ExistingPipeIdx > _LeftPipeIndex):
+                _LeftPipeIndex = pipeline.index(_ExistingPipe)
+            elif _ExistingPipeIdx > new_pipe_priority and (_RightPipeIndex is None or _ExistingPipeIdx < _RightPipeIndex):
+                _RightPipeIndex = pipeline.index(_ExistingPipe)
 
-        if right_pipe_index is not None:
-            pipeline.insert(right_pipe_index, new_pipe)
-        elif left_pipe_index is not None:
-            pipeline.insert(left_pipe_index+1, new_pipe)
+        if _RightPipeIndex is not None:
+            pipeline.insert(_RightPipeIndex, new_pipe)
+        elif _LeftPipeIndex is not None:
+            pipeline.insert(_LeftPipeIndex+1, new_pipe)
         else:
             raise PipeConfigurationError(f"Failed to insert the pipe '{new_pipe}' into the pipeline.")
