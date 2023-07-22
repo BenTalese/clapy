@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Type
 
-from .generics import TInputPort, TOutputPort, TServiceType
-from .pipeline import IPipe, PipeConfiguration
+from .outputs import IOutputPort
+from .pipeline import IPipe, InputPort, PipeConfiguration
 
 
 class IPipelineFactory(ABC):
@@ -11,7 +11,7 @@ class IPipelineFactory(ABC):
     @abstractmethod
     async def create_pipeline_async(
             self,
-            input_port: TInputPort,
+            input_port: InputPort,
             pipeline_configuration: List[PipeConfiguration]) -> List[Type[IPipe]]:
         '''
         Summary
@@ -36,7 +36,7 @@ class IServiceProvider(ABC):
     '''A generic interface for getting services from a dependency injection container.'''
 
     @abstractmethod
-    def get_service(self, service: Type[TServiceType]) -> TServiceType:
+    def get_service(self, service: type) -> object:
         '''
         Summary
         -------
@@ -55,19 +55,19 @@ class IServiceProvider(ABC):
 
 
 class IUseCaseInvoker(ABC):
-    '''The main engine of Clapy. Handles the invocation of use case pipelines and the execution of resulting actions.'''
+    '''The main engine of Clapy. Handles the invocation of use case pipelines.'''
 
     @abstractmethod
     async def invoke_usecase_async(
             self,
-            input_port: TInputPort,
-            output_port: TOutputPort,
+            input_port: InputPort,
+            output_port: IOutputPort,
             pipeline_configuration: List[Type[IPipe]]) -> None:
         '''
         Summary
         -------
         Performs the invocation of a use case with the provided input and output ports. Will stop
-        invocation on receival of a coroutine result, or if the pipeline's pipes are exhausted.
+        the pipeline if the pipeline's pipes are exhausted, or on pipe failure unless configured to ignore.
 
         Parameters
         ----------

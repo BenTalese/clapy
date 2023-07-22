@@ -2,7 +2,7 @@ import importlib
 import inspect
 import os
 import re
-from typing import List
+from typing import List, Tuple
 
 
 DIR_EXCLUSIONS = [r"__pycache__"]
@@ -67,7 +67,10 @@ class Common:
 
 
     @staticmethod
-    def get_all_classes(location, directory_exclusion_patterns, file_exclusion_patterns) -> List[(object, str)]:
+    def get_all_classes(
+          location: str,
+          directory_exclusion_patterns: List[str],
+          file_exclusion_patterns: List[str]) -> List[Tuple[object, str]]:
         '''
         Summary
         -------
@@ -91,7 +94,7 @@ class Common:
                         _Directories[:] = [_Dir for _Dir in _Directories if not re.match(_ExclusionPattern, _Dir)]
 
             for _ExclusionPattern in file_exclusion_patterns + FILE_EXCLUSIONS:
-                        _Files[:] = [_File for _File in _Files if not re.match(_ExclusionPattern, _Files)]
+                        _Files[:] = [_File for _File in _Files if not re.match(_ExclusionPattern, _File)]
 
             for _File in _Files:
                 _Namespace = _Root.replace('/', '.').lstrip(".") + "." + _File[:-3]

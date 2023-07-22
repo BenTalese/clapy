@@ -1,39 +1,39 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Coroutine, Generic, NamedTuple, Type, Union
+from typing import NamedTuple, Type
 
-from .outputs import IValidationOutputPort
-from .generics import TInputPort, TOutputPort
+from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
 
 
-class IPipe(Generic[TInputPort, TOutputPort], ABC):
-    '''Marks a class as a pipe. A pipe is a class that must have an execution method and a priority.'''
+class InputPort:
+    '''Marks a class as an input port (not an implementation of IPipe). The entry point for all use cases.'''
+    pass
+
+
+class IPipe(InputPort, IOutputPort, ABC):
+    '''Marks a class as a pipe. A pipe is a class that has an execution method and reports on failures.'''
 
     def __init__(self) -> None:
         self._has_failures = False
 
     @abstractmethod
-    async def execute_async(self, input_port: TInputPort, output_port: TOutputPort) -> Union[Coroutine, None]:
+    async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
         '''
         Summary
         -------
-        Defines the behaviour of the pipe when executed. Must return either a coroutine
-        function (an output port method), or no result.
+        Defines the behaviour of the pipe when executed.
 
         Parameters
         ----------
         `input_port` The input of the use case to be processed\n
-        `output_port` The interface containing output methods to return as a result of the pipe's execution
-
-        Returns
-        -------
-        `Coroutine` (a method of the output port) if the pipe has a result to return, otherwise `None`.
+        `output_port` The interface containing methods to output the result of the pipe's execution
 
         '''
         pass
 
     @property
     def has_failures(self) -> bool:
+        '''Determines whether or not a failure has occurred during the pipe's execution.'''
         return self._has_failures
 
     @has_failures.setter
@@ -48,7 +48,7 @@ class PipeConfigurationOption(Enum):
     '''If found from searching the use case pipes, the pipe will be added, otherwise it is ignored.'''
 
     INSERT = "INSERT"
-    '''Will insert the provided pipe at the specified location.'''
+    '''Will insert the pipe at the specified location, regardless of its presence within the defined used case.'''
 
 
 class PipeConfiguration(NamedTuple):
@@ -57,8 +57,10 @@ class PipeConfiguration(NamedTuple):
 
     Attributes:
         type (Type[IPipe]): The type of the pipe.
-        option (PipeConfigurationOption): The configuration option for the pipe.
-        TODO
+        option (PipeConfigurationOption): The inclusion option for the pipe. Defaults to
+        `PipeConfigurationOption.DEFAULT`.
+        should_ignore_failures (bool): If true, will tell the invoker to continue the pipeline
+        regardless of failures. Defaults to `false`.
     '''
     type: Type[IPipe]
     option: PipeConfigurationOption = PipeConfigurationOption.DEFAULT
@@ -81,11 +83,6 @@ class EntityExistenceChecker(IPipe):
     pass
 
 
-class InputPort:
-    '''Marks a class as an input port (not an implementation of IPipe). The entry point for all use cases.'''
-    pass
-
-
 class InputPortValidator(IPipe):
     '''Marks a class as an input port validator pipe. Used to enforce integrity and correctness of input data.'''
     pass
@@ -103,25 +100,28 @@ class PersistenceRuleValidator(IPipe):
 
 
 def required(func):
-    '''#TODO: docs'''
+    '''Marks a property on an InputPort as required. Used alongside the `RequiredInputValidator`
+    pipe, the `required` decorator enforces values to be supplied to use cases.'''
     def wrapper(self):
         return func(self)
     return wrapper
 
 
 class RequiredInputValidator(IPipe):
-    #TODO: Docs
+    '''A validation pipe, used to check if any required inputs from the use case's InputPort have
+    not been given a value. Required inputs are identified via the `required` decorator.'''
 
-    async def execute_async(self, input_port: Any, output_port: Any) -> Coroutine[Any, Any, Union[Coroutine, None]]:
-        properties = [(attr, getattr(input_port.__class__, attr)) for attr in dir(input_port.__class__)
+    async def execute_async(self, input_port: InputPort, output_port: IValidationOutputPort) -> None:
+        _Properties = [(attr, getattr(input_port.__class__, attr)) for attr in dir(input_port.__class__)
                       if isinstance(getattr(input_port.__class__, attr), property)]
 
-        fails = []
+        _MissingInputs = []
 
-        for name, prop in properties:
-            if prop.__get__(input_port) is None:
-                fails.append(name)
+        for _Name, _Property in _Properties:
+            if _Property.__get__(input_port) is None:
+                _MissingInputs.append(_Name)
 
-        if issubclass(type(output_port), IValidationOutputPort) and fails:
-            await output_port.present_validation_failure_async(f"Required inputs must have a value: {', '.join(fails)}")
+        if issubclass(type(output_port), IValidationOutputPort) and _MissingInputs:
+            await output_port.present_validation_failure_async(
+                ValidationResult.from_summary(f"Required inputs must have a value: {', '.join(_MissingInputs)}"))
             self.has_failures = True

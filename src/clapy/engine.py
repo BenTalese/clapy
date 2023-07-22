@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Type
 
 from .common import Common
 from .exceptions import PipeConfigurationError
-from .generics import TInputPort, TOutputPort
+from .outputs import IOutputPort
 from .pipeline import (InputPort, IPipe, PipeConfiguration,
                        PipeConfigurationOption)
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
@@ -18,7 +18,7 @@ class PipelineFactory(IPipelineFactory):
 
     async def create_pipeline_async(
             self,
-            input_port: TInputPort,
+            input_port: InputPort,
             pipeline_configuration: List[PipeConfiguration]) -> List[Type[IPipe]]:
         '''
         Summary
@@ -77,8 +77,8 @@ class UseCaseInvoker(IUseCaseInvoker):
 
     async def invoke_usecase_async(
             self,
-            input_port: TInputPort,
-            output_port: TOutputPort,
+            input_port: InputPort,
+            output_port: IOutputPort,
             pipeline_configuration: List[PipeConfiguration]) -> None:
         '''
         Summary

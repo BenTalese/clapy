@@ -7,7 +7,6 @@ from dependency_injector import containers, providers
 from .common import Common
 from .engine import Engine, PipelineFactory, UseCaseInvoker
 from .exceptions import DuplicateServiceError
-from .generics import TServiceType
 from .pipeline import IPipe
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
@@ -22,7 +21,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
     def __init__(self):
         self._container = containers.DeclarativeContainer()
 
-    def get_service(self, service: Type[TServiceType]) -> TServiceType:
+    def get_service(self, service: type) -> object:
         '''
         Summary
         -------
@@ -53,9 +52,9 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
     def register_service(
             self,
-            provider_method: Type,
-            concrete_type: Type[TServiceType],
-            interface_type: Optional[Type[TServiceType]] = None, *args) -> None:
+            provider_method: type,
+            concrete_type: type,
+            interface_type: Optional[type] = None, *args) -> None:
         '''
         Summary
         -------
@@ -162,7 +161,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         self.register_service(providers.Factory, UseCaseInvoker, IUseCaseInvoker)
         return self.get_service(IUseCaseInvoker)
 
-    def _try_generate_service_name(self, service: Type[TServiceType]) -> Tuple[str, bool]:
+    def _try_generate_service_name(self, service: type) -> Tuple[str, bool]:
         '''
         Summary
         -------
@@ -185,7 +184,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
         return _TypeMatch.group().replace('.', '_'), True
 
-    def _has_service(self, service: Type[TServiceType]) -> bool:
+    def _has_service(self, service: type) -> bool:
         '''
         Summary
         -------
