@@ -24,14 +24,14 @@ async def main():
     _ServiceProvider.register_pipe_services(_UsecaseScanLocations, [r"venv", r"src"], [r".*main\.py"])
     _ServiceProvider.construct_usecase_invoker(_UsecaseScanLocations)
 
-    _ServiceProvider.register_service(providers.Factory, RequiredInputValidator) #TODO: hmm....this isn't great
+    _ServiceProvider.register_service(providers.Factory, RequiredInputValidator)
 
     _ServiceProvider.register_service(providers.Factory, ConversationController)
 
     _Controller: ConversationController = _ServiceProvider.get_service(ConversationController)
 
     _InputPort = GreetInputPort()
-    _InputPort.name = "Ben Ben"
+    _InputPort.name = "Ben"
 
     await _Controller.greet_async(_InputPort, GreetPresenter(), PipelineConfiguration.DefaultConfiguration.value)
 
