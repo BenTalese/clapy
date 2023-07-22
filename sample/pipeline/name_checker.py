@@ -1,8 +1,6 @@
-from typing import Generic
-
-from src.clapy.generics import TInputPort, TOutputPort
-from src.clapy.pipeline import IPipe
+from src.clapy.outputs import IOutputPort
+from src.clapy.pipeline import IPipe, InputPort
 
 
-class NameChecker(IPipe, Generic[TInputPort, TOutputPort]):
+class NameChecker(IPipe, InputPort, IOutputPort):
     pass
