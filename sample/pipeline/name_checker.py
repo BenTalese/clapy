@@ -1,6 +1,5 @@
-from src.clapy.outputs import IOutputPort
-from src.clapy.pipeline import IPipe, InputPort
+from src.clapy.pipeline import IPipe
 
 
-class NameChecker(IPipe, InputPort, IOutputPort):
+class NameChecker(IPipe):
     pass

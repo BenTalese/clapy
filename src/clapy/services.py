@@ -62,7 +62,7 @@ class IUseCaseInvoker(ABC):
             self,
             input_port: InputPort,
             output_port: IOutputPort,
-            pipeline_configuration: List[Type[IPipe]]) -> None:
+            pipeline_configuration: List[PipeConfiguration]) -> None:
         '''
         Summary
         -------

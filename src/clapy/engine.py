@@ -1,5 +1,5 @@
 import inspect
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Type, cast
 
 from .common import Common
 from .exceptions import PipeConfigurationError
@@ -13,8 +13,10 @@ class PipelineFactory(IPipelineFactory):
     '''Responsible for creating the pipeline for the use case invoker to execute.'''
 
     def __init__(self, service_provider: IServiceProvider, usecase_registry: Dict[str, List[str]]):
-        self._service_provider = service_provider or ValueError("service_provider cannot be None.")
-        self._usecase_registry = usecase_registry or ValueError("usecase_registry cannot be None.")
+        if not service_provider or not usecase_registry:
+            raise ValueError(f"Constructor parameters cannot be 'None' for {PipelineFactory.__name__}.")
+        self._service_provider = service_provider
+        self._usecase_registry = usecase_registry
 
     async def create_pipeline_async(
             self,
@@ -42,10 +44,10 @@ class PipelineFactory(IPipelineFactory):
         '''
         _UsecaseKey = input_port.__module__
 
-        if _UsecaseKey not in self._usecase_registry:
+        if _UsecaseKey not in self._usecase_registry.keys():
             raise KeyError(f"Could not find '{input_port}' in the pipeline registry.")
 
-        _PipeServices = [self._service_provider.get_service(Common.import_class_by_namespace(_Namespace))
+        _PipeServices = [cast(Type[IPipe], self._service_provider.get_service(Common.import_class_by_namespace(_Namespace)))
                          for _Namespace in self._usecase_registry[_UsecaseKey]]
 
         _FilteredPipes = [_Pipe for _Pipe in _PipeServices
@@ -64,7 +66,7 @@ class PipelineFactory(IPipelineFactory):
                           and _ExtraPipe.option == PipeConfigurationOption.INSERT]
 
         for _PipeService, _Priority in _PipesToInsert:
-            Engine._insert_pipe(_PipeService, _Priority, _SortedPipes, pipeline_configuration)
+            Engine._insert_pipe(cast(Type[IPipe],_PipeService), _Priority, _SortedPipes, pipeline_configuration)
 
         return _SortedPipes
 
@@ -73,7 +75,9 @@ class UseCaseInvoker(IUseCaseInvoker):
     '''The main engine of Clapy. Handles the invocation of use case pipelines.'''
 
     def __init__(self, pipeline_factory: IPipelineFactory):
-        self._pipeline_factory = pipeline_factory or ValueError("pipeline_factory cannot be None.")
+        if not pipeline_factory:
+            raise ValueError(f"Constructor parameters cannot be 'None' for {UseCaseInvoker.__name__}.")
+        self._pipeline_factory = pipeline_factory
 
     async def invoke_usecase_async(
             self,
@@ -101,13 +105,13 @@ class UseCaseInvoker(IUseCaseInvoker):
 
             _Pipe = _Pipeline.pop(0)
 
-            await _Pipe.execute_async(input_port, output_port)
+            await _Pipe.execute_async(input_port, output_port) # type: ignore
 
             _ShouldIgnoreFailures = next(pipe_config.should_ignore_failures
                                          for pipe_config in pipeline_configuration
                                          if issubclass(type(_Pipe), pipe_config.type))
 
-            _PipelineShouldContinue = not _Pipe.has_failures or _ShouldIgnoreFailures
+            _PipelineShouldContinue = not _Pipe.has_failures or _ShouldIgnoreFailures # type: ignore
 
 
 class Engine:
@@ -115,9 +119,9 @@ class Engine:
 
     @staticmethod
     def construct_usecase_registry(
-            usecase_locations: Optional[List[str]] = ["."],
-            directory_exclusion_patterns: Optional[List[str]] = [],
-            file_exclusion_patterns: Optional[List[str]] = []) -> Dict[str, List[str]]:
+            usecase_locations: List[str] = ["."],
+            directory_exclusion_patterns: List[str] = [],
+            file_exclusion_patterns: List[str] = []) -> Dict[str, List[str]]:
         '''
         Summary
         -------
@@ -139,7 +143,7 @@ class Engine:
         a list of fully qualified namespaces of the matching use case pipes found in that location.
 
         '''
-        _UsecaseRegistry = {}
+        _UsecaseRegistry: Dict[str, List[str]] = {}
 
         for _Location in usecase_locations:
             _ClassesWithNamespaces = Common.get_all_classes(_Location, directory_exclusion_patterns, file_exclusion_patterns)
@@ -170,7 +174,7 @@ class Engine:
                 if _InputPortParam:
                     _UsecaseKey = next(_InputPortNamespace[1] for _InputPortNamespace
                                        in _InputPortClassesWithNamespaces
-                                       if type(_InputPortNamespace[0]) == type(_InputPortParam.annotation))
+                                       if isinstance(type(_InputPortNamespace[0]), type(_InputPortParam.annotation)))
                     if _UsecaseKey:
                         _UsecaseRegistry.setdefault(_UsecaseKey, []).append(_PipeNamespace[1])
                     else:
@@ -180,7 +184,7 @@ class Engine:
 
     @staticmethod
     def _insert_pipe(
-            new_pipe: IPipe,
+            new_pipe: Type[IPipe],
             new_pipe_priority: int,
             pipeline: List[Type[IPipe]],
             pipeline_configuration: List[PipeConfiguration]) -> None:

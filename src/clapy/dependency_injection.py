@@ -1,6 +1,6 @@
 import inspect
 import re
-from typing import List, Optional, Tuple, Type
+from typing import List, Tuple
 
 from dependency_injector import containers, providers
 
@@ -54,7 +54,8 @@ class DependencyInjectorServiceProvider(IServiceProvider):
             self,
             provider_method: type,
             concrete_type: type,
-            interface_type: Optional[type] = None, *args) -> None:
+            interface_type: type = None,
+            *args) -> None:
         '''
         Summary
         -------
@@ -100,9 +101,9 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
     def register_pipe_services(
             self,
-            usecase_scan_locations: Optional[List[str]] = ["."],
-            directory_exclusion_patterns: Optional[List[str]] = [],
-            file_exclusion_patterns: Optional[List[str]] = []) -> None:
+            usecase_scan_locations: List[str] = ["."],
+            directory_exclusion_patterns: List[str] = [],
+            file_exclusion_patterns: List[str] = []) -> None:
         '''
         Summary
         -------
@@ -129,9 +130,9 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
     def construct_usecase_invoker(
             self,
-            usecase_scan_locations: Optional[List[str]] = ["."],
-            directory_exclusion_patterns: Optional[List[str]] = [],
-            file_exclusion_patterns: Optional[List[str]] = []) -> IUseCaseInvoker:
+            usecase_scan_locations: List[str] = ["."],
+            directory_exclusion_patterns: List[str] = [],
+            file_exclusion_patterns: List[str] = []) -> IUseCaseInvoker:
         '''
         Summary
         -------

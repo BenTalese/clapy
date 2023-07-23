@@ -31,7 +31,7 @@ async def main():
     _Controller: ConversationController = _ServiceProvider.get_service(ConversationController)
 
     _InputPort = GreetInputPort()
-    _InputPort.name = "Ben"
+    _InputPort.name = "Ben Ben"
 
     await _Controller.greet_async(_InputPort, GreetPresenter(), PipelineConfiguration.DefaultConfiguration.value)
 

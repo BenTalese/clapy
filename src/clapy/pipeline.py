@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import NamedTuple, Type
+from typing import NamedTuple, Type, cast
 
 from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
 
@@ -111,7 +111,7 @@ class RequiredInputValidator(IPipe):
     '''A validation pipe, used to check if any required inputs from the use case's InputPort have
     not been given a value. Required inputs are identified via the `required` decorator.'''
 
-    async def execute_async(self, input_port: InputPort, output_port: IValidationOutputPort) -> None:
+    async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
         _Properties = [(attr, getattr(input_port.__class__, attr)) for attr in dir(input_port.__class__)
                       if isinstance(getattr(input_port.__class__, attr), property)]
 
@@ -122,6 +122,6 @@ class RequiredInputValidator(IPipe):
                 _MissingInputs.append(_Name)
 
         if issubclass(type(output_port), IValidationOutputPort) and _MissingInputs:
-            await output_port.present_validation_failure_async(
+            await cast(IValidationOutputPort, output_port).present_validation_failure_async(
                 ValidationResult.from_summary(f"Required inputs must have a value: {', '.join(_MissingInputs)}"))
             self.has_failures = True
