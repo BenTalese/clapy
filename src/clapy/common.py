@@ -65,6 +65,31 @@ class Common:
 
         return _ModuleClass
 
+    @staticmethod
+    def apply_exclusion_filter(collection: List[str], exclusion_patterns: List[str]) -> None:
+        '''
+        Summary
+        -------
+        Applies RegEx exclusion patterns to a collection of strings and removes any
+        items that match those patterns.
+
+        Parameters
+        ----------
+        `collection` A list of strings that represents the collection of items that need
+        to be filtered.\n
+        `exclusion_patterns` A list of regular expression patterns that should be used to exclude
+        certain items from the collection.
+
+        Example
+        -------
+        my_collection = ["a", "b", "c", "d"]\n
+        exclusion_patterns = ["b", "d"]\n
+        MyClass.apply_exclusion_filter(my_collection, exclusion_patterns)\n
+        print(my_collection)  # Output: ["a", "c"]
+
+        '''
+        for _ExclusionPattern in exclusion_patterns:
+            collection[:] = [_Item for _Item in collection if not re.match(_ExclusionPattern, _Item)]
 
     @staticmethod
     def get_all_classes(
@@ -90,11 +115,8 @@ class Common:
 
         for _Root, _Directories, _Files in os.walk(location):
 
-            for _ExclusionPattern in directory_exclusion_patterns + DIR_EXCLUSIONS:
-                        _Directories[:] = [_Dir for _Dir in _Directories if not re.match(_ExclusionPattern, _Dir)]
-
-            for _ExclusionPattern in file_exclusion_patterns + FILE_EXCLUSIONS:
-                        _Files[:] = [_File for _File in _Files if not re.match(_ExclusionPattern, _File)]
+            Common.apply_exclusion_filter(_Directories, directory_exclusion_patterns + DIR_EXCLUSIONS)
+            Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
 
             for _File in _Files:
                 _Namespace = _Root.replace('/', '.').lstrip(".") + "." + _File[:-3]

@@ -56,71 +56,71 @@ def test__import_class_by_namespace__NoMatchingClassExists__RaisesImportError(mo
 
 # ---------------- apply_exclusion_filter tests ----------------
 
-# @pytest.fixture
-# def file_names():
-#     return [
-#         "file1.txt",
-#         "file2.py",
-#         "file3.py",
-#         "file4.txt"
-#     ]
+@pytest.fixture
+def file_names():
+    return [
+        "file1.txt",
+        "file2.py",
+        "file3.py",
+        "file4.txt"
+    ]
 
 
-# @pytest.fixture
-# def patterns():
-#     return [
-#         r".*file1\.py",
-#         r".*file4\.py",
-#         r"^.*(?<!\.py)$"
-#     ]
+@pytest.fixture
+def patterns():
+    return [
+        r".*file1\.py",
+        r".*file4\.py",
+        r"^.*(?<!\.py)$"
+    ]
 
 
-# def test__apply_exclusion_filter__NoPatternsMatchItems__CollectionNotModified(file_names, patterns):
-#     # Arrange
-#     patterns.pop(2)
+def test__apply_exclusion_filter__NoPatternsMatchItems__CollectionNotModified(file_names, patterns):
+    # Arrange
+    patterns.pop(2)
 
-#     _Expected = ["file1.txt", "file2.py", "file3.py", "file4.txt"]
+    _Expected = ["file1.txt", "file2.py", "file3.py", "file4.txt"]
 
-#     # Act
-#     Common.apply_exclusion_filter(file_names, patterns)
+    # Act
+    Common.apply_exclusion_filter(file_names, patterns)
 
-#     # Assert
-#     assert file_names == _Expected
-
-
-# def test__apply_exclusion_filter__NoPatternsProvided__CollectionNotModified(file_names, patterns):
-#     # Arrange
-#     patterns = []
-
-#     _Expected = ["file1.txt", "file2.py", "file3.py", "file4.txt"]
-
-#     # Act
-#     Common.apply_exclusion_filter(file_names, patterns)
-
-#     # Assert
-#     assert file_names == _Expected
+    # Assert
+    assert file_names == _Expected
 
 
-# def test__apply_exclusion_filter__EmptyCollection__CollectionNotModified(file_names, patterns):
-#     # Arrange
-#     file_names = []
-#     _Expected = []
+def test__apply_exclusion_filter__NoPatternsProvided__CollectionNotModified(file_names, patterns):
+    # Arrange
+    patterns = []
 
-#     # Act
-#     Common.apply_exclusion_filter(file_names, patterns)
+    _Expected = ["file1.txt", "file2.py", "file3.py", "file4.txt"]
 
-#     # Assert
-#     assert file_names == _Expected
+    # Act
+    Common.apply_exclusion_filter(file_names, patterns)
+
+    # Assert
+    assert file_names == _Expected
 
 
-# def test__apply_exclusion_filter__MultipleItemsMatchPattern__MatchingItemsRemovedFromCollection(file_names, patterns):
-#     # Arrange
-#     _Expected = ["file2.py", "file3.py"]
+def test__apply_exclusion_filter__EmptyCollection__CollectionNotModified(file_names, patterns):
+    # Arrange
+    file_names = []
+    _Expected = []
 
-#     # Act
-#     Common.apply_exclusion_filter(file_names, patterns)
+    # Act
+    Common.apply_exclusion_filter(file_names, patterns)
 
-#     # Assert
-#     assert file_names == _Expected
+    # Assert
+    assert file_names == _Expected
+
+
+def test__apply_exclusion_filter__MultipleItemsMatchPattern__MatchingItemsRemovedFromCollection(file_names, patterns):
+    # Arrange
+    _Expected = ["file2.py", "file3.py"]
+
+    # Act
+    Common.apply_exclusion_filter(file_names, patterns)
+
+    # Assert
+    assert file_names == _Expected
 
 # end apply_exclusion_filter tests
