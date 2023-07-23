@@ -70,7 +70,7 @@ class Common:
     def get_all_classes(
           location: str,
           directory_exclusion_patterns: List[str],
-          file_exclusion_patterns: List[str]) -> List[Tuple[object, str]]:
+          file_exclusion_patterns: List[str]) -> List[Tuple[type, str]]:
         '''
         Summary
         -------

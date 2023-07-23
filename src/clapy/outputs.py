@@ -5,7 +5,7 @@ from typing import Dict, List
 class AuthorisationResult:
     '''An authorisation result from an authorisation enforcer.'''
 
-    def __init__(self, reason: str = None) -> None:
+    def __init__(self, reason: str) -> None:
         self.reason = reason
 
 
@@ -15,7 +15,7 @@ class ValidationResult:
     def __init__(
             self,
             errors: Dict[str, List[str]] = {},
-            summary: str = None) -> None:
+            summary: str = "") -> None:
         self.errors = errors
         self.summary = summary
 
@@ -35,7 +35,7 @@ class ValidationResult:
 
     def add_error(self, property: str, error_message: str) -> None:
         '''#TODO'''
-        self.errors.setdefault(property.__name__, []).append(error_message)
+        self.errors.setdefault(property, []).append(error_message) # type: ignore
 
 
 class IOutputPort(ABC):

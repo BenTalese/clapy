@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import NamedTuple, Type, cast
+from typing import Coroutine, NamedTuple, Type, cast
 
 from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
 
@@ -61,10 +61,14 @@ class PipeConfiguration(NamedTuple):
         `PipeConfigurationOption.DEFAULT`.
         should_ignore_failures (bool): If true, will tell the invoker to continue the pipeline
         regardless of failures. Defaults to `false`.
+        pre_action (Coroutine): An optional pre-action to be executed before pipe execution
+        post_action (Coroutine): An optional post-action to be executed after pipe execution
     '''
     type: Type[IPipe]
     option: PipeConfigurationOption = PipeConfigurationOption.DEFAULT
     should_ignore_failures: bool = False
+    pre_action: Coroutine = None # type: ignore
+    post_action: Coroutine = None # type: ignore
 
 
 class AuthenticationVerifier(IPipe):

@@ -105,7 +105,16 @@ class UseCaseInvoker(IUseCaseInvoker):
 
             _Pipe = _Pipeline.pop(0)
 
+            _Configuration = next(pipe_config for pipe_config in pipeline_configuration
+                                  if issubclass(type(_Pipe), pipe_config.type))
+
+            if _Configuration.pre_action: # type: ignore
+                await _Configuration.pre_action # type: ignore
+
             await _Pipe.execute_async(input_port, output_port) # type: ignore
+
+            if _Configuration.post_action: # type: ignore
+                await _Configuration.post_action # type: ignore
 
             _ShouldIgnoreFailures = next(pipe_config.should_ignore_failures
                                          for pipe_config in pipeline_configuration
@@ -166,7 +175,7 @@ class Engine:
                                             if _Name == IPipe.execute_async.__name__), None)
 
                 _InputPortParam = next((_Param for _Param
-                                   in inspect.signature(_ExecuteAsyncMethod).parameters.values()
+                                   in inspect.signature(_ExecuteAsyncMethod).parameters.values() # type: ignore
                                    if _Param.annotation != inspect.Parameter.empty
                                    and any(_InputPortNamespace[0] is _Param.annotation
                                            for _InputPortNamespace in _InputPortClassesWithNamespaces)), None)

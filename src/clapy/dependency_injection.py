@@ -54,7 +54,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
             self,
             provider_method: type,
             concrete_type: type,
-            interface_type: type = None,
+            interface_type: type = None, # type: ignore
             *args) -> None:
         '''
         Summary
@@ -85,7 +85,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         if hasattr(self._container, _DependencyName):
             raise DuplicateServiceError(f"An already registered service is conflicting with {interface_type or concrete_type}.")
 
-        _ConstructorDependencies = [_Param for _Param in inspect.signature(concrete_type.__init__).parameters.values()
+        _ConstructorDependencies = [_Param for _Param in inspect.signature(concrete_type.__init__).parameters.values() # type: ignore
                                     if _Param.annotation != inspect.Parameter.empty
                                     and self._has_service(_Param.annotation)]
 
@@ -160,7 +160,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
             file_exclusion_patterns)
         self.register_service(providers.Singleton, PipelineFactory, IPipelineFactory, self, _UsecaseRegistry)
         self.register_service(providers.Factory, UseCaseInvoker, IUseCaseInvoker)
-        return self.get_service(IUseCaseInvoker)
+        return self.get_service(IUseCaseInvoker) # type: ignore
 
     def _try_generate_service_name(self, service: type) -> Tuple[str, bool]:
         '''
