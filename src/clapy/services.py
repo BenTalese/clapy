@@ -62,7 +62,7 @@ class IUseCaseInvoker(ABC):
             self,
             input_port: InputPort,
             output_port: IOutputPort,
-            pipeline_configuration: List[PipeConfiguration]) -> None:
+            pipeline_configuration: List[PipeConfiguration]) -> bool:
         '''
         Summary
         -------
@@ -74,7 +74,12 @@ class IUseCaseInvoker(ABC):
         `input_port` The input port of the use case to be invoked\n
         `output_port` The output port of the use case to be invoked\n
         `pipeline_configuration` The configuration used to determine priority and inclusion of
-        use case pipes
+        use case pipes.
+
+        Returns
+        -------
+        True if pipes exhausted and no pipe failures occurred. Does not check failure override from
+        pipe configurations.
 
         '''
         pass

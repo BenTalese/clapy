@@ -120,7 +120,7 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         `file_exclusion_patterns`An optional list of regular expression patterns used to exclude files
         from being scanned and registered.
 
-        ''' #TODO: single use case in file needs testing
+        '''
         for _Location in usecase_scan_locations:
             _ClassesWithNamespaces = Common.get_all_classes(_Location, directory_exclusion_patterns, file_exclusion_patterns)
 

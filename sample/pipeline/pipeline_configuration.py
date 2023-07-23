@@ -17,3 +17,14 @@ class PipelineConfiguration(Enum):
         PipeConfiguration(NameChecker),
         PipeConfiguration(Interactor, post_action=report_time("Finish time is: "))
     ]
+
+    BulkGreetConfiguration = [
+        PipeConfiguration(RequiredInputValidator, PipeConfigurationOption.INSERT),
+        PipeConfiguration(Interactor)
+    ]
+
+    ValidationOnlyConfiguration = [
+        PipeConfiguration(RequiredInputValidator, PipeConfigurationOption.INSERT),
+        PipeConfiguration(InputPortValidator),
+        PipeConfiguration(NameChecker)
+    ]

@@ -83,7 +83,7 @@ class UseCaseInvoker(IUseCaseInvoker):
             self,
             input_port: InputPort,
             output_port: IOutputPort,
-            pipeline_configuration: List[PipeConfiguration]) -> None:
+            pipeline_configuration: List[PipeConfiguration]) -> bool:
         '''
         Summary
         -------
@@ -97,10 +97,16 @@ class UseCaseInvoker(IUseCaseInvoker):
         `pipeline_configuration` The configuration used to determine priority and inclusion of
         use case pipes.
 
+        Returns
+        -------
+        True if pipes exhausted and no pipe failures occurred. Does not check failure override from
+        pipe configurations.
+
         '''
         _Pipeline = await self._pipeline_factory.create_pipeline_async(input_port, pipeline_configuration)
 
         _PipelineShouldContinue = True
+        _PipelineRanWithoutFailure = True
         while _PipelineShouldContinue and len(_Pipeline) > 0:
 
             _Pipe = _Pipeline.pop(0)
@@ -121,6 +127,9 @@ class UseCaseInvoker(IUseCaseInvoker):
                                          if issubclass(type(_Pipe), pipe_config.type))
 
             _PipelineShouldContinue = not _Pipe.has_failures or _ShouldIgnoreFailures # type: ignore
+            _PipelineRanWithoutFailure = not _Pipe.has_failures
+
+        return _PipelineRanWithoutFailure
 
 
 class Engine:

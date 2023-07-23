@@ -10,7 +10,14 @@ class AuthorisationResult:
 
 
 class ValidationResult:
-    '''A validation result from a validator.'''
+    '''
+    A validation result from a validator.
+
+    Attributes:
+        errors (Dict[str, List[str]]): A dictionary that maps property names to a list of error
+        messages associated with each property.
+        summary (str): A summary message representing the overall result of the validation.
+    '''
 
     def __init__(
             self,
@@ -21,20 +28,43 @@ class ValidationResult:
 
     @classmethod
     def from_error(cls, property: str, error_message: str) -> 'ValidationResult':
-        '''#TODO'''
+        '''
+        Creates a ValidationResult instance with a single property error.
+
+        Parameters:
+            property (str): The property in error.
+            error_message (str): The error message associated with the property.
+
+        Returns:
+            ValidationResult: A ValidationResult instance with the specified property error.
+        '''
         instance = cls()
         instance.add_error(property, error_message)
         return instance
 
     @classmethod
     def from_summary(cls, summary: str) -> 'ValidationResult':
-        '''#TODO'''
+        '''
+        Creates a ValidationResult instance with a summary message.
+
+        Parameters:
+            summary (str): The summary message representing the overall result of the validation.
+
+        Returns:
+            ValidationResult: A ValidationResult instance with the specified summary message.
+        '''
         instance = cls()
         instance.summary = summary
         return instance
 
     def add_error(self, property: str, error_message: str) -> None:
-        '''#TODO'''
+        '''
+        Adds an error message to the specified property.
+
+        Parameters:
+            property (str): The property in error.
+            error_message (str): The error message to be added against the property.
+        '''
         self.errors.setdefault(property, []).append(error_message) # type: ignore
 
 
