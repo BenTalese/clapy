@@ -19,7 +19,7 @@ class ValidationResult:
         summary (str): A summary message representing the overall result of the validation.
     '''
 
-    def __init__(self, errors: Dict[str, List[str]] = None, summary: str = None) -> None:
+    def __init__(self, errors: Dict[str, List[str]] = None, summary: str = None) -> None: # type: ignore
         self.errors = errors
         self.summary = summary
 
