@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 sys.path.append(os.getcwd())
 
 import asyncio
@@ -21,8 +22,8 @@ async def main():
     # Setup:
     _ServiceProvider = DependencyInjectorServiceProvider()
     _UsecaseScanLocations = ["sample/use_cases"]
-    _ServiceProvider.register_pipe_services(_UsecaseScanLocations, [r"venv", r"src"], [r".*main\.py"])
-    _ServiceProvider.construct_usecase_invoker(_UsecaseScanLocations)
+    _ServiceProvider.configure_clapy_services(_UsecaseScanLocations, [r"venv", r"src"], [r".*main\.py"])
+
     _ServiceProvider.register_service(providers.Factory, RequiredInputValidator)
     _ServiceProvider.register_service(providers.Factory, ConversationController)
 

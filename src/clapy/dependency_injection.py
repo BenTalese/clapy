@@ -128,11 +128,11 @@ class DependencyInjectorServiceProvider(IServiceProvider):
                 if issubclass(_ClassNamespace[0], IPipe):
                     self.register_service(providers.Factory, _ClassNamespace[0])
 
-    def construct_usecase_invoker(
+    def configure_clapy_services(
             self,
             usecase_scan_locations: List[str] = ["."],
             directory_exclusion_patterns: List[str] = [],
-            file_exclusion_patterns: List[str] = []) -> IUseCaseInvoker:
+            file_exclusion_patterns: List[str] = []) -> None:
         '''
         Summary
         -------
@@ -154,13 +154,16 @@ class DependencyInjectorServiceProvider(IServiceProvider):
         An instance of the concrete implementation for the `IUseCaseInvoker`.
 
         '''
-        _UsecaseRegistry = Engine.construct_usecase_registry(
-            usecase_scan_locations,
-            directory_exclusion_patterns,
-            file_exclusion_patterns)
+        self.register_pipe_services(usecase_scan_locations,
+                                    directory_exclusion_patterns,
+                                    file_exclusion_patterns)
+
+        _UsecaseRegistry = Engine.construct_usecase_registry(usecase_scan_locations,
+                                                             directory_exclusion_patterns,
+                                                             file_exclusion_patterns)
+
         self.register_service(providers.Singleton, PipelineFactory, IPipelineFactory, self, _UsecaseRegistry)
         self.register_service(providers.Factory, UseCaseInvoker, IUseCaseInvoker)
-        return self.get_service(IUseCaseInvoker) # type: ignore
 
     def _try_generate_service_name(self, service: type) -> Tuple[str, bool]:
         '''
