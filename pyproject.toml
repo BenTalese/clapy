@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clapy"
-version = "1.0.0"
+version = "2.0.0"
 description = "Automated invocation of clean architecture use cases in Python."
 readme = "README.md"
 authors = [{ name = "Ben Talese", email = "ben.talese@gmail.com" }]
@@ -13,7 +13,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Intended Audience :: Developers",
     "Framework :: AsyncIO",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
