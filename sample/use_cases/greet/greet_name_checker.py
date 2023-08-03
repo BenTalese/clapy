@@ -9,7 +9,7 @@ class GreetNameChecker(NameChecker):
     async def execute_async(self, input_port: GreetInputPort, output_port: IGreetOutputPort) -> None:
         if len(input_port.name) > 20:
             await output_port.present_validation_failure_async(
-                ValidationResult.from_error(input_port.name, "Your name is too long for me to say... 😔"))
+                ValidationResult.from_error(input_port, 'name', "Your name is too long for me to say... 😔"))
             self.has_failures = True
 
         elif len(input_port.name.split(" ")) < 2:

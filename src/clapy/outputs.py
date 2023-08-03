@@ -19,27 +19,31 @@ class ValidationResult:
         summary (str): A summary message representing the overall result of the validation.
     '''
 
-    def __init__(
-            self,
-            errors: Dict[str, List[str]] = {},
-            summary: str = "") -> None:
+    def __init__(self, errors: Dict[str, List[str]] = None, summary: str = None) -> None:
         self.errors = errors
         self.summary = summary
 
+    def __str__(self) -> str:
+        return {
+            "errors": self.errors,
+            "summary": self.summary
+        }.__str__()
+
     @classmethod
-    def from_error(cls, property: str, error_message: str) -> 'ValidationResult':
+    def from_error(cls, input_port, property_name: str, error_message: str) -> 'ValidationResult':
         '''
         Creates a ValidationResult instance with a single property error.
 
         Parameters:
-            property (str): The property in error.
+            input_port (InputPort): The input port the property is a member of.
+            property_name (str): The name of the property in error.
             error_message (str): The error message associated with the property.
-
         Returns:
             ValidationResult: A ValidationResult instance with the specified property error.
         '''
         instance = cls()
-        instance.add_error(property, error_message)
+        instance._ensure_property_exist(input_port, property_name)
+        instance.add_error(property_name, error_message)
         return instance
 
     @classmethod
@@ -65,7 +69,14 @@ class ValidationResult:
             property (str): The property in error.
             error_message (str): The error message to be added against the property.
         '''
+        if self.errors is None:
+            self.errors = {}
+
         self.errors.setdefault(property, []).append(error_message) # type: ignore
+
+    def _ensure_property_exist(self, input_port, property_name: str) -> None:
+        if not any(property_name == var.lstrip("_") for var in vars(input_port).keys()):
+            raise KeyError(f"The InputPort '{input_port}' does not contain a property by the name of '{property_name}'.")
 
 
 class IOutputPort(ABC):

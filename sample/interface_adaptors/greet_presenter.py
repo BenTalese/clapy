@@ -8,7 +8,7 @@ class GreetPresenter(IGreetOutputPort):
         print(greeting)
 
     async def present_validation_failure_async(self, validation_failure: ValidationResult) -> None:
-        print(validation_failure.summary)
+        print(validation_failure)
 
     async def present_missing_names_warning_async(self) -> bool:
         user_input = input("You only told me one of your names, do you want to continue? Enter 'Y' to continue or 'N' to stop.")
