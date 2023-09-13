@@ -8,6 +8,8 @@ from .pipeline import (InputPort, IPipe, PipeConfiguration,
                        PipeConfigurationOption)
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
+__all__ = ["PipelineFactory", "UseCaseInvoker", "Engine"]
+
 
 class PipelineFactory(IPipelineFactory):
     '''Responsible for creating the pipeline for the use case invoker to execute.'''

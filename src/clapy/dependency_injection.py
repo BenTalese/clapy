@@ -10,6 +10,8 @@ from .exceptions import DuplicateServiceError
 from .pipeline import IPipe
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
+__all__ = ["DependencyInjectorServiceProvider"]
+
 
 class DependencyInjectorServiceProvider(IServiceProvider):
     '''

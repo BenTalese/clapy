@@ -4,6 +4,8 @@ import os
 import re
 from typing import List, Tuple
 
+__all__ = ["Common"]
+
 
 DIR_EXCLUSIONS = [r"__pycache__"]
 '''
