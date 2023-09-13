@@ -42,7 +42,7 @@ class IServiceProvider(ABC):
         '''
         Summary
         -------
-        Retrieves the specified service from the dependency_injectior container.
+        Retrieves the specified service from the dependency_injection container.
 
         Parameters
         ----------
