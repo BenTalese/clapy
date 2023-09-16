@@ -7,7 +7,7 @@ from dependency_injector import containers, providers
 from .common import Common
 from .engine import Engine, PipelineFactory, UseCaseInvoker
 from .exceptions import DuplicateServiceError
-from .pipeline import IPipe
+from .pipeline import IPipe, InputTypeValidator, RequiredInputValidator
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 __all__ = ["DependencyInjectorServiceProvider"]
@@ -166,6 +166,8 @@ class DependencyInjectorServiceProvider(IServiceProvider):
 
         self.register_service(providers.Singleton, PipelineFactory, IPipelineFactory, self, _UsecaseRegistry)
         self.register_service(providers.Factory, UseCaseInvoker, IUseCaseInvoker)
+        self.register_service(providers.Factory, RequiredInputValidator)
+        self.register_service(providers.Factory, InputTypeValidator)
 
     def _try_generate_service_name(self, service: type) -> Tuple[str, bool]:
         '''
