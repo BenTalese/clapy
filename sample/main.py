@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 sys.path.append(os.getcwd())
 
 import asyncio
@@ -24,7 +23,6 @@ async def main():
     _UsecaseScanLocations = ["sample/use_cases"]
     _ServiceProvider.configure_clapy_services(_UsecaseScanLocations, [r"venv", r"src"], [r".*main\.py"])
 
-    _ServiceProvider.register_service(providers.Factory, RequiredInputValidator)
     _ServiceProvider.register_service(providers.Factory, ConversationController)
 
     _Controller: ConversationController = _ServiceProvider.get_service(ConversationController)

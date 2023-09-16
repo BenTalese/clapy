@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Coroutine, NamedTuple, Type, cast
+from typing import Coroutine, NamedTuple, Type, cast, get_type_hints
 
 from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
 
@@ -13,9 +13,9 @@ __all__ = [
     "AuthorisationEnforcer",
     "EntityExistenceChecker",
     "InputPortValidator",
+    "InputTypeValidator",
     "Interactor",
     "PersistenceRuleValidator",
-    "required",
     "RequiredInputValidator"
     ]
 
@@ -107,6 +107,31 @@ class InputPortValidator(IPipe):
     pass
 
 
+class InputTypeValidator(IPipe):
+    '''A use case validation pipe. Verifies all attributes on the InputPort have
+    been provided a value matching the type hint defined on the attribute.'''
+
+    async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
+        _ValidationResult = ValidationResult()
+
+        for attr_name, type_hint in get_type_hints(input_port).items():
+            try:
+                attr_value = getattr(input_port, attr_name)
+
+                if (type_hint != type(attr_value)
+                    and not issubclass(type(attr_value), type_hint)
+                    and attr_value is not None):
+                    _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_hint.__name__}'.")
+
+            except AttributeError:
+                pass
+
+        if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult:
+            _ValidationResult.summary = "Types of inputs are mismatching input port's defined attribute types."
+            await cast(IValidationOutputPort, output_port).present_validation_failure_async(_ValidationResult)
+            self.has_failures = True
+
+
 class Interactor(IPipe):
     '''Marks a class as an interactor pipe. Performs the main action of the use case.'''
     pass
@@ -118,29 +143,20 @@ class PersistenceRuleValidator(IPipe):
     pass
 
 
-def required(func):
-    '''Marks a property on an InputPort as required. Used alongside the `RequiredInputValidator`
-    pipe, the `required` decorator enforces values to be supplied to use cases.'''
-    def wrapper(self):
-        return func(self)
-    return wrapper
-
-
 class RequiredInputValidator(IPipe):
-    '''A validation pipe, used to check if any required inputs from the use case's InputPort have
-    not been given a value. Required inputs are identified via the `required` decorator.'''
+    '''A use case validation pipe. Verifies all attributes on the InputPort have
+    been provided a value.'''
 
     async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
-        _Properties = [(attr, getattr(input_port.__class__, attr)) for attr in dir(input_port.__class__)
-                      if isinstance(getattr(input_port.__class__, attr), property)]
+        _ValidationResult = ValidationResult()
 
-        _MissingInputs = []
+        for attr_name, type_hint in get_type_hints(input_port).items():
+            try:
+                _ = getattr(input_port, attr_name)
+            except AttributeError:
+                _ValidationResult.add_error(attr_name, f"'{attr_name}' must have a value.")
 
-        for _Name, _Property in _Properties:
-            if _Property.__get__(input_port) is None:
-                _MissingInputs.append(_Name)
-
-        if issubclass(type(output_port), IValidationOutputPort) and _MissingInputs:
-            await cast(IValidationOutputPort, output_port).present_validation_failure_async(
-                ValidationResult.from_summary(f"Required inputs must have a value: {', '.join(_MissingInputs)}"))
+        if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult.errors:
+            _ValidationResult.summary = "Required inputs are missing values."
+            await cast(IValidationOutputPort, output_port).present_validation_failure_async(_ValidationResult)
             self.has_failures = True
