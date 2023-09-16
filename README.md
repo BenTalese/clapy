@@ -60,18 +60,7 @@ Before we can use anything from Clapy, we need a use case to invoke. Firstly, a 
 
 ```python
 class ExampleInputPort(InputPort):
-
-    def __init__(self):
-        self._message = None
-
-    @property
-    @required
-    def message(self) -> str:
-        return self._message
-
-    @name.setter
-    def message(self, value):
-        self._message = value
+    message: str
 
 
 class IExampleOutputPort(IOutputPort, ABC):
@@ -81,7 +70,14 @@ class IExampleOutputPort(IOutputPort, ABC):
         pass
 ```
 
-Notice the particular design of the `ExampleInputPort`? Clapy allows you to decorate the properties of the input port with the `@required` decorator. In combination with the `RequiredInputValidator` you can enforce inputs to be provided to a use case without an exception being thrown.
+#### Input Validation
+Clapy supports Pydantic-like validation of inputs via type hints and default value assignment with the `InputTypeValidator` and `RequiredInputValidator`. This allows you to restrict and validate inputs provided to a use case without an exception being thrown like you would get with Pydantic or a constructor.
+
+  * Specifying a type hint enforces the value assigned to that input to be the same type as (or a subclass of) the type hint.
+  * Specifying no type hint means type validation is skipped for that input.
+  * Not assigning a default value means the input is required and must be provided a value.
+  * Assigning a default value means the input is optional.
+  * Type validation and required inputs can be turned on by including the `InputTypeValidator` and/or the `RequiredInputValidator` pipes in your configuration. You must also have `IValidationOutputPort` inherited on your output port.
 
 #### Generic Outputs
 A use case will always have its specific outputs, but it can be good to define generic outputs across use cases. This comes in handy when you want categories of outputs to be consistent across use cases so you can deal with them easily in your presenters. You can of course define as many of your own as you want, but Clapy does provide some output ports for you to use by default:
@@ -109,11 +105,12 @@ To represent this, Clapy defines the `IPipe` interface which defines at its root
   * `AuthorisationEnforcer`
   * `EntityExistenceChecker`
   * `InputPortValidator`
+  * `InputTypeValidator`
   * `Interactor`
   * `PersistenceRuleValidator`
   * `RequiredInputValidator`
 
-Note, the only pipe with a default implementation here is the `RequiredInputValidator`. It is a special pipe that can either be set up as a blank pipe in your use case (the inherited pipe type will handle the work), or you can configure it to be inserted into the pipeline upon pipeline construction.
+Note, the only pipes with a default implementation here are the `InputTypeValidator` and `RequiredInputValidator`. They are special pipes that can either be set up as a blank pipe in your use case (the inherited pipe type will handle the work), or you can configure them to be inserted into the pipeline upon pipeline construction.
 
 #### Creating a Use Case Pipe
 Using these classes as our "pipe types/categories", we can then construct specific pipes for our use cases. The `UseCaseInvoker` will invoke the `execute_async` method of each pipe in the defined order until it reaches the last pipe, or if one of the pipes reports it has errors. This is overridable for cases such as wanting to get the errors of a set of pipes before stopping the pipeline. Here is an example input port validator pipe:
