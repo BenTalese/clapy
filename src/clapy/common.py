@@ -124,6 +124,7 @@ class Common:
                 _Namespace = _Root.replace('/', '.').lstrip(".") + "." + _File[:-3]
                 _Module = importlib.import_module(_Namespace, package=None)
                 for _Name, _Class in inspect.getmembers(_Module, inspect.isclass):
-                    _ClassesWithNamespaces.append((_Class, _Namespace))
+                    if _Class.__module__ == _Module.__name__:
+                        _ClassesWithNamespaces.append((_Class, _Namespace))
 
         return _ClassesWithNamespaces
