@@ -128,8 +128,8 @@ class UseCaseInvoker(IUseCaseInvoker):
                                          for pipe_config in pipeline_configuration
                                          if issubclass(type(_Pipe), pipe_config.type))
 
-            _PipelineShouldContinue = not _Pipe.has_failures or _ShouldIgnoreFailures # type: ignore
-            _PipelineRanWithoutFailure = not _Pipe.has_failures
+            _PipelineShouldContinue = (not _Pipe.has_failures and _PipelineRanWithoutFailure) or _ShouldIgnoreFailures # type: ignore
+            _PipelineRanWithoutFailure = (not _Pipe.has_failures and _PipelineRanWithoutFailure)
 
         return _PipelineRanWithoutFailure
 
