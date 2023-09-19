@@ -126,7 +126,7 @@ class InputTypeValidator(IPipe):
             except AttributeError:
                 pass
 
-        if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult:
+        if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult.errors:
             _ValidationResult.summary = "Types of inputs are mismatching input port's defined attribute types."
             await cast(IValidationOutputPort, output_port).present_validation_failure_async(_ValidationResult)
             self.has_failures = True
