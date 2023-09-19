@@ -25,7 +25,7 @@ class InputPort:
     pass
 
 
-class IPipe(InputPort, IOutputPort, ABC):
+class IPipe(ABC):
     '''Marks a class as a pipe. A pipe is a class that has an execution method and reports on failures.'''
 
     def __init__(self) -> None:
