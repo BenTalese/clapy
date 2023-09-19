@@ -112,6 +112,11 @@ class InputTypeValidator(IPipe):
     been provided a value matching the type hint defined on the attribute.'''
 
     async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
+        try:
+            input_port.__annotations__
+        except:
+            return
+
         _ValidationResult = ValidationResult()
 
         for attr_name, type_hint in get_type_hints(input_port).items():
@@ -148,6 +153,11 @@ class RequiredInputValidator(IPipe):
     been provided a value.'''
 
     async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
+        try:
+            input_port.__annotations__
+        except:
+            return
+
         _ValidationResult = ValidationResult()
 
         for attr_name, type_hint in get_type_hints(input_port).items():
