@@ -194,7 +194,7 @@ class Engine:
                 if _InputPortParam:
                     _UsecaseKey = next(_InputPortNamespace[1] for _InputPortNamespace
                                        in _InputPortClassesWithNamespaces
-                                       if isinstance(type(_InputPortNamespace[0]), type(_InputPortParam.annotation)))
+                                       if _InputPortNamespace[0] == _InputPortParam.annotation)
                     if _UsecaseKey:
                         _UsecaseRegistry.setdefault(_UsecaseKey, []).append(_PipeNamespace[1])
                     else:
