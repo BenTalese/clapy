@@ -28,8 +28,7 @@ class InputPort:
 class IPipe(ABC):
     '''Marks a class as a pipe. A pipe is a class that has an execution method and reports on failures.'''
 
-    def __init__(self) -> None:
-        self._has_failures = False
+    has_failures = False
 
     @abstractmethod
     async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
@@ -45,15 +44,6 @@ class IPipe(ABC):
 
         '''
         pass
-
-    @property
-    def has_failures(self) -> bool:
-        '''Determines whether or not a failure has occurred during the pipe's execution.'''
-        return self._has_failures
-
-    @has_failures.setter
-    def has_failures(self, value: bool):
-        self._has_failures = value
 
 
 class PipeConfigurationOption(Enum):
