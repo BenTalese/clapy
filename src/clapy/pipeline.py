@@ -22,7 +22,9 @@ __all__ = [
 
 class InputPort:
     '''Marks a class as an input port (not an implementation of IPipe). The entry point for all use cases.'''
-    pass
+
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 
 class IPipe(ABC):
