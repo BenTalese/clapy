@@ -16,7 +16,7 @@
 
 Standing for **Cl**ean **A**rchitecture **Py**thon, Clapy is a powerful, generic tool designed to provide the perfect solution for constructing and invoking clean architecture use cases in Python. Featuring all the essential building blocks for creating simple to complex use cases, Clapy is adaptable to the needs of any project or business.
 
-See Clapy in action: <W.I.P.>
+**See Clapy in action ➡️ [Discount Dora](https://github.com/BenTalese/DiscountDora) ⬅️**
 
 ## Features
   * Predefined use case output ports and pipes for typical usage, which can be easily added to.
