@@ -124,9 +124,9 @@ class InputTypeValidator(IPipe):
                 pass
 
         if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult.errors:
+            self.has_failures = True
             _ValidationResult.summary = "Types of inputs are mismatching input port's defined attribute types."
             await cast(IValidationOutputPort, output_port).present_validation_failure_async(_ValidationResult)
-            self.has_failures = True
 
 
 class Interactor(IPipe):
@@ -159,6 +159,6 @@ class RequiredInputValidator(IPipe):
                 _ValidationResult.add_error(attr_name, f"'{attr_name}' must have a value.")
 
         if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult.errors:
+            self.has_failures = True
             _ValidationResult.summary = "Required inputs are missing values."
             await cast(IValidationOutputPort, output_port).present_validation_failure_async(_ValidationResult)
-            self.has_failures = True
