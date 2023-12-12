@@ -11,6 +11,7 @@ from .pipeline import (AuthenticationVerifier, AuthorisationEnforcer,
                        PersistenceRuleValidator, PipeConfiguration,
                        PipeConfigurationOption, RequiredInputValidator)
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
+from .utils import AttributeChangeTracker
 
 __all__ = [
     "Common",
@@ -40,5 +41,6 @@ __all__ = [
     "RequiredInputValidator",
     "IPipelineFactory",
     "IServiceProvider",
-    "IUseCaseInvoker"
+    "IUseCaseInvoker",
+    "AttributeChangeTracker"
     ]
