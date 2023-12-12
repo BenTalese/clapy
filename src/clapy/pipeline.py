@@ -152,7 +152,7 @@ class RequiredInputValidator(IPipe):
 
         _ValidationResult = ValidationResult()
 
-        for attr_name, type_hint in get_type_hints(input_port).items():
+        for attr_name, _ in get_type_hints(input_port).items():
             try:
                 _ = getattr(input_port, attr_name)
             except AttributeError:
