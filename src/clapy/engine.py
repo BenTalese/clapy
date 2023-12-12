@@ -107,9 +107,9 @@ class UseCaseInvoker(IUseCaseInvoker):
         '''
         _Pipeline = await self._pipeline_factory.create_pipeline_async(input_port, pipeline_configuration)
 
-        _PipelineShouldContinue = True
-        _PipelineRanWithoutFailure = True
-        while _PipelineShouldContinue and len(_Pipeline) > 0:
+        _CanContinueToNextPipe = True
+        _PipelineHasNoFailures = True
+        while _CanContinueToNextPipe and len(_Pipeline) > 0:
 
             _Pipe = _Pipeline.pop(0)
 
@@ -128,10 +128,10 @@ class UseCaseInvoker(IUseCaseInvoker):
                                          for pipe_config in pipeline_configuration
                                          if issubclass(type(_Pipe), pipe_config.type))
 
-            _PipelineShouldContinue = (not _Pipe.has_failures and _PipelineRanWithoutFailure) or _ShouldIgnoreFailures # type: ignore
-            _PipelineRanWithoutFailure = (not _Pipe.has_failures and _PipelineRanWithoutFailure)
+            _CanContinueToNextPipe = (not _Pipe.has_failures and _PipelineHasNoFailures) or _ShouldIgnoreFailures # type: ignore
+            _PipelineHasNoFailures = (not _Pipe.has_failures and _PipelineHasNoFailures)
 
-        return _PipelineRanWithoutFailure
+        return _PipelineHasNoFailures
 
 
 class Engine:
