@@ -1,10 +1,12 @@
-from typing import Generic, TypeVar
+from typing import Generic, Type, TypeVar
 
 __all__ = ["AttributeChangeTracker"]
 
 TAttribute = TypeVar('TAttribute')
 
 class AttributeChangeTracker(Generic[TAttribute]):
+    __origin__ = Type['AttributeChangeTracker']
+
     def __init__(self, value: TAttribute = None):
         self._value = value
         self._has_been_set = True if value else False
