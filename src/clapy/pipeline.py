@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Coroutine, NamedTuple, Type, cast, get_type_hints
 
 from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
+from .utils import AttributeChangeTracker
 
 __all__ = [
     "InputPort",
@@ -115,9 +116,17 @@ class InputTypeValidator(IPipe):
             try:
                 attr_value = getattr(input_port, attr_name)
 
-                if (type_hint != type(attr_value)
-                    and not issubclass(type(attr_value), type_hint)
-                    and attr_value is not None):
+                if hasattr(type_hint, "__origin__") and type_hint.__origin__ is AttributeChangeTracker:
+                    if not (hasattr(attr_value, "__origin__") and type_hint.__origin__ is AttributeChangeTracker):
+                        _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{AttributeChangeTracker.__name__}[{type_hint.__args__[0].__name__}]'.")
+
+                    # Get inner types of AttributeChangeTrackers
+                    type_hint = type_hint.__args__[0]
+                    inner_attr_value = attr_value.value
+
+                if (type(type_hint) != type(inner_attr_value)
+                    and not issubclass(type(inner_attr_value), type_hint)
+                    and inner_attr_value is not None):
                     _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_hint.__name__}'.")
 
             except AttributeError:
