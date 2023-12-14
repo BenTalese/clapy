@@ -6,8 +6,8 @@ from dependency_injector import containers, providers
 
 from .common import Common
 from .engine import Engine, PipelineFactory, UseCaseInvoker
-from .exceptions import DuplicateServiceError
-from .pipeline import IPipe, InputTypeValidator, RequiredInputValidator
+from .exceptions import DependencyConstructionError, DuplicateServiceError
+from .pipeline import InputTypeValidator, IPipe, RequiredInputValidator
 from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 
 __all__ = ["DependencyInjectorServiceProvider"]
@@ -48,9 +48,15 @@ class DependencyInjectorServiceProvider(IServiceProvider):
             _Service = self._container.providers.get(_ServiceName)
 
             if _Service is not None:
-                return _Service()
+                try:
+                    return _Service()
+                except TypeError as ex:
+                    raise DependencyConstructionError(f"Unable to construct service '{service.__name__}', " +
+                                                      "possibly due to missing required services from the DI " +
+                                                      "container, or not all interface methods " +
+                                                      f"implemented. See inner exception: {ex}.")
 
-        raise LookupError(f"Was not able to retrieve '{service.__name__}' from DI container.")
+        raise LookupError(f"Unable to retrieve '{service.__name__}' from DI container.")
 
     def register_service(
             self,
