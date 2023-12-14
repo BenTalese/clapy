@@ -115,22 +115,38 @@ class InputTypeValidator(IPipe):
         for attr_name, type_hint in get_type_hints(input_port).items():
             try:
                 attr_value = getattr(input_port, attr_name)
-
-                if hasattr(type_hint, "__origin__") and type_hint.__origin__ is AttributeChangeTracker:
-                    if not (hasattr(attr_value, "__origin__") and type_hint.__origin__ is AttributeChangeTracker):
-                        _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{AttributeChangeTracker.__name__}[{type_hint.__args__[0].__name__}]'.")
-
-                    # Get inner types of AttributeChangeTrackers
-                    type_hint = type_hint.__args__[0]
-                    inner_attr_value = attr_value.value
-
-                if (type(type_hint) != type(inner_attr_value)
-                    and not issubclass(type(inner_attr_value), type_hint)
-                    and inner_attr_value is not None):
-                    _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_hint.__name__}'.")
-
             except AttributeError:
-                pass
+                continue
+
+            if hasattr(type_hint, "__origin__"):
+                type_origin = type_hint.__origin__
+                type_args = type_hint.__args__
+
+                if not isinstance(attr_value, type_origin):
+                    _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_origin.__name__}'.")
+
+                value_types = []
+                for value in attr_value:
+                    if type(value) not in value_types:
+                        value_types.append(type(value))
+
+                if len(value_types) > len(type_args):
+                    _ValidationResult.add_error(attr_name, f"'{attr_name}' has too many values for type '{type_hint}'.")
+
+                if len(value_types) < len(type_args):
+                    _ValidationResult.add_error(attr_name, f"'{attr_name}' has too few values for type '{type_hint}'.")
+
+                for value in attr_value:
+                    if (type(value) not in type_args
+                        and not any(issubclass(type(value), type_arg) for type_arg in type_args)
+                        and value is not None):
+                        _ValidationResult.add_error(attr_name, f"""'{value}' of type {type(value)} does not match the
+                        type(s) '{', '.join(arg.__name__ for arg in type_args)}' for '{attr_name}'.""")
+
+            elif (type_hint != type(attr_value)
+                  and not issubclass(type(attr_value), type_hint)
+                  and attr_value is not None):
+                _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_hint.__name__}'.")
 
         if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult.errors:
             self.has_failures = True
