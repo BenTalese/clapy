@@ -1,7 +1,8 @@
 from .common import Common
 from .dependency_injection import DependencyInjectorServiceProvider
 from .engine import Engine, PipelineFactory, UseCaseInvoker
-from .exceptions import DuplicateServiceError, PipeConfigurationError
+from .exceptions import (DependencyConstructionError, DuplicateServiceError,
+                         PipeConfigurationError)
 from .outputs import (AuthorisationResult, IAuthenticationOutputPort,
                       IAuthorisationOutputPort, IOutputPort,
                       IValidationOutputPort, ValidationResult)
@@ -14,33 +15,34 @@ from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 from .utils import AttributeChangeTracker
 
 __all__ = [
-    "Common",
-    "DependencyInjectorServiceProvider",
-    "PipelineFactory",
-    "UseCaseInvoker",
-    "Engine",
-    "DuplicateServiceError",
-    "PipeConfigurationError",
-    "AuthorisationResult",
-    "ValidationResult",
-    "IOutputPort",
-    "IAuthenticationOutputPort",
-    "IAuthorisationOutputPort",
-    "IValidationOutputPort",
-    "InputPort",
-    "IPipe",
-    "PipeConfigurationOption",
-    "PipeConfiguration",
+    "AttributeChangeTracker"
     "AuthenticationVerifier",
     "AuthorisationEnforcer",
+    "AuthorisationResult",
+    "Common",
+    "DependencyConstructionError",
+    "DependencyInjectorServiceProvider",
+    "DuplicateServiceError",
+    "Engine",
     "EntityExistenceChecker",
+    "IAuthenticationOutputPort",
+    "IAuthorisationOutputPort",
+    "IOutputPort",
+    "IPipe",
+    "IPipelineFactory",
+    "IServiceProvider",
+    "IUseCaseInvoker",
+    "IValidationOutputPort",
+    "InputPort",
     "InputPortValidator",
     "InputTypeValidator",
     "Interactor",
     "PersistenceRuleValidator",
+    "PipeConfiguration",
+    "PipeConfigurationError",
+    "PipeConfigurationOption",
+    "PipelineFactory",
     "RequiredInputValidator",
-    "IPipelineFactory",
-    "IServiceProvider",
-    "IUseCaseInvoker",
-    "AttributeChangeTracker"
+    "UseCaseInvoker",
+    "ValidationResult",
     ]
