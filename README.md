@@ -18,6 +18,8 @@ Standing for **Cl**ean **A**rchitecture **Py**thon, Clapy is a powerful, generic
 
 **See Clapy in action ➡️ [Discount Dora](https://github.com/BenTalese/DiscountDora) ⬅️**
 
+<br/>
+
 ## Features
   * Predefined use case output ports and pipes for typical usage, which can be easily added to.
   * A use case invoker to orchestrate your use cases and help manage your inputs and outputs.
@@ -252,8 +254,6 @@ As with any software, there are limitations to consider when using Clapy:
   4. **Complex design considerations**: While crafting your use cases, you must be careful to consider what your framework is going to do with them. For example, an MVC web API will have completely different requirements to a bulk synchronisation processor, and again to an MVVM desktop application. While the use case may not be affected much, the onflow affect of how it is utilised in the framework will need considerable thought put into it.
   5. **Limited community support**: While clean architecture is not new as a concept, it is not very common to see it applied to Python in the way Clapy is designed and therefore there is not a large community of people who can provide assistance with issues.
 
-## Contributing
-Thank you for your interest in contributing to Clapy. At this time, Clapy is a pretty well polished in what it needs to do, all that's missing is unit tests. Feel free to suggest any improvements or add to the existing unit tests.
 
 ## Licence
 Clapy is released under the MIT Licence. See the LICENCE file for more information.
