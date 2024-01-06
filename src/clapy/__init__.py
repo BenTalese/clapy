@@ -15,7 +15,7 @@ from .services import IPipelineFactory, IServiceProvider, IUseCaseInvoker
 from .utils import AttributeChangeTracker
 
 __all__ = [
-    "AttributeChangeTracker"
+    "AttributeChangeTracker",
     "AuthenticationVerifier",
     "AuthorisationEnforcer",
     "AuthorisationResult",

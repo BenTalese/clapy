@@ -7,7 +7,7 @@ TAttribute = TypeVar('TAttribute')
 class AttributeChangeTracker(Generic[TAttribute]):
     __origin__ = Type['AttributeChangeTracker']
 
-    def __init__(self, value: TAttribute = None):
+    def __init__(self, value: TAttribute):
         self._value = value
         self._has_been_set = True if value else False
 

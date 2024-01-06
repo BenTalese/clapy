@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Coroutine, NamedTuple, Type, cast, get_type_hints
 
 from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
-from .utils import AttributeChangeTracker
 
 __all__ = [
     "InputPort",
@@ -107,7 +106,7 @@ class InputTypeValidator(IPipe):
     async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
         try:
             input_port.__annotations__
-        except:
+        except Exception:
             return
 
         _ValidationResult = ValidationResult()
@@ -172,7 +171,7 @@ class RequiredInputValidator(IPipe):
     async def execute_async(self, input_port: InputPort, output_port: IOutputPort) -> None:
         try:
             input_port.__annotations__
-        except:
+        except Exception:
             return
 
         _ValidationResult = ValidationResult()
