@@ -121,7 +121,7 @@ class Common:
             Common.apply_exclusion_filter(_Files, file_exclusion_patterns + FILE_EXCLUSIONS)
 
             for _File in _Files:
-                _Namespace = _Root.replace('/', '.').lstrip(".") + "." + _File[:-3]
+                _Namespace = _Root.replace('\\\\', '.').replace('\\', '.').replace('/', '.').lstrip(".") + "." + _File[:-3]
                 _Module = importlib.import_module(_Namespace, package=None)
                 for _Name, _Class in inspect.getmembers(_Module, inspect.isclass):
                     if _Class.__module__ == _Module.__name__:
