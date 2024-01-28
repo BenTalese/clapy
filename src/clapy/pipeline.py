@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Coroutine, NamedTuple, Type, cast, get_type_hints
 
 from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
+from .common import Common
 
 __all__ = [
     "InputPort",
@@ -124,22 +125,30 @@ class InputTypeValidator(IPipe):
                 if not isinstance(attr_value, type_origin):
                     _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_origin.__name__}'.")
 
-                value_types = []
-                for value in attr_value:
-                    if type(value) not in value_types:
-                        value_types.append(type(value))
+                if Common.is_iterable(attr_value):
+                    value_types = []
+                    for value in attr_value:
+                        if type(value) not in value_types:
+                            value_types.append(type(value))
 
-                if len(value_types) > len(type_args):
-                    _ValidationResult.add_error(attr_name, f"'{attr_name}' has too many values for type '{type_hint}'.")
+                    if len(value_types) > len(type_args):
+                        _ValidationResult.add_error(attr_name, f"'{attr_name}' has too many values for type '{type_hint}'.")
 
-                if len(value_types) < len(type_args):
-                    _ValidationResult.add_error(attr_name, f"'{attr_name}' has too few values for type '{type_hint}'.")
+                    if len(value_types) < len(type_args):
+                        _ValidationResult.add_error(attr_name, f"'{attr_name}' has too few values for type '{type_hint}'.")
 
-                for value in attr_value:
-                    if (type(value) not in type_args
-                        and not any(issubclass(type(value), type_arg) for type_arg in type_args)
-                        and value is not None):
-                        _ValidationResult.add_error(attr_name, f"""'{value}' of type {type(value)} does not match the
+                    for value in attr_value:
+                        if (type(value) not in type_args
+                            and not any(issubclass(type(value), type_arg) for type_arg in type_args)
+                            and value is not None):
+                            _ValidationResult.add_error(attr_name, f"""'{value}' of type {type(value)} does not match the
+                            type(s) '{', '.join(arg.__name__ for arg in type_args)}' for '{attr_name}'.""")
+
+                else:
+                    if (type(attr_value) not in type_args
+                        and not any(issubclass(type(attr_value), type_arg) for type_arg in type_args)
+                        and attr_value is not None):
+                        _ValidationResult.add_error(attr_name, f"""'{attr_value}' of type {type(attr_value)} does not match the
                         type(s) '{', '.join(arg.__name__ for arg in type_args)}' for '{attr_name}'.""")
 
             elif (type_hint != type(attr_value)

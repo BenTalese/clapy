@@ -2,7 +2,7 @@ import importlib
 import inspect
 import os
 import re
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 __all__ = ["Common"]
 
@@ -24,6 +24,21 @@ class Common:
     '''
     This class contains static utility methods for scanning and importing classes.
     '''
+
+    @staticmethod
+    def is_iterable(value: Any):
+        """
+        The function `is_iterable` checks if a value is iterable or not.
+
+        :param value: The parameter "value" is the input that we want to check if it is iterable or not
+        :return: The function is_iterable is returning a boolean value. It returns True if the input
+        value is iterable, and False if it is not iterable.
+        """
+        try:
+            iter(value)
+            return True
+        except TypeError:
+            return False
 
     @staticmethod
     def import_class_by_namespace(namespace: str) -> type:
