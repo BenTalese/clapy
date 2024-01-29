@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Coroutine, NamedTuple, Type, cast, get_type_hints
+from typing import Coroutine, NamedTuple, Type, Union, cast, get_type_hints
 
-from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
 from .common import Common
+from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
+from .utils import AttributeChangeTracker
 
 __all__ = [
     "InputPort",
@@ -112,49 +113,49 @@ class InputTypeValidator(IPipe):
 
         _ValidationResult = ValidationResult()
 
+        def validate_attribute(attr_value, type_hint) -> Union[str, None]:
+            if not hasattr(type_hint, "__origin__"):
+                if (type(attr_value) != type_hint
+                    and not issubclass(type(attr_value), type_hint)
+                    and attr_value is not None):
+                    return f"'{attr_name}' must be of type '{type_hint.__name__}'."
+
+            else:
+                type_origin = type_hint.__origin__
+                type_args = type_hint.__args__
+
+                if not isinstance(attr_value, type_origin):
+                    return f"'{attr_name}', or a sub-value of, must be of type '{type_origin.__name__}'."
+
+                elif Common.is_iterable(attr_value):
+                    if len(set([type(val) for val in attr_value])) != len(type_args):
+                        return f"'{attr_name}' has the wrong number of value types for type '{type_hint}'."
+
+                    for val in attr_value:
+                        if (type(val) not in type_args
+                            and type(val) not in [ta.__origin__ for ta in type_args if hasattr(ta, "__origin__")]
+                            and not any(issubclass(type(val), type_arg) for type_arg in type_args)
+                            and val is not None):
+                            return f"'{val}' of type {type(val)} does not match the " + \
+                            f"type(s) '{', '.join(arg.__name__ for arg in type_args)}' for '{attr_name}'."
+
+                elif type(attr_value) == AttributeChangeTracker:
+                    return validate_attribute(
+                        attr_value._value,
+                        type_args if not hasattr(type_hint, "__origin__") else type_args[0])
+
         for attr_name, type_hint in get_type_hints(input_port).items():
             try:
                 attr_value = getattr(input_port, attr_name)
             except AttributeError:
                 continue
 
-            if hasattr(type_hint, "__origin__"):
-                type_origin = type_hint.__origin__
-                type_args = type_hint.__args__
-
-                if not isinstance(attr_value, type_origin):
-                    _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_origin.__name__}'.")
-
-                if Common.is_iterable(attr_value):
-                    value_types = []
-                    for value in attr_value:
-                        if type(value) not in value_types:
-                            value_types.append(type(value))
-
-                    if len(value_types) > len(type_args):
-                        _ValidationResult.add_error(attr_name, f"'{attr_name}' has too many values for type '{type_hint}'.")
-
-                    if len(value_types) < len(type_args):
-                        _ValidationResult.add_error(attr_name, f"'{attr_name}' has too few values for type '{type_hint}'.")
-
-                    for value in attr_value:
-                        if (type(value) not in type_args
-                            and not any(issubclass(type(value), type_arg) for type_arg in type_args)
-                            and value is not None):
-                            _ValidationResult.add_error(attr_name, f"""'{value}' of type {type(value)} does not match the
-                            type(s) '{', '.join(arg.__name__ for arg in type_args)}' for '{attr_name}'.""")
-
-                else:
-                    if (type(attr_value) not in type_args
-                        and not any(issubclass(type(attr_value), type_arg) for type_arg in type_args)
-                        and attr_value is not None):
-                        _ValidationResult.add_error(attr_name, f"""'{attr_value}' of type {type(attr_value)} does not match the
-                        type(s) '{', '.join(arg.__name__ for arg in type_args)}' for '{attr_name}'.""")
-
-            elif (type_hint != type(attr_value)
-                  and not issubclass(type(attr_value), type_hint)
-                  and attr_value is not None):
-                _ValidationResult.add_error(attr_name, f"'{attr_name}' must be of type '{type_hint.__name__}'.")
+            try:
+                _ErrorMessage = validate_attribute(attr_value, type_hint)
+                if _ErrorMessage:
+                    _ValidationResult.add_error(attr_name, _ErrorMessage)
+            except Exception as e:
+                print(f"[CLAPY ERROR]: Could not validate '{attr_name}' of type '{type_hint}' with value '{attr_value}', see exception: {e}")
 
         if issubclass(type(output_port), IValidationOutputPort) and _ValidationResult.errors:
             self.has_failures = True
