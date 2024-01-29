@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Coroutine, NamedTuple, Type, Union, cast, get_type_hints
+from typing import Coroutine, NamedTuple, Type, cast, get_type_hints
 
 from .common import Common
 from .outputs import IOutputPort, IValidationOutputPort, ValidationResult
@@ -113,7 +113,7 @@ class InputTypeValidator(IPipe):
 
         _ValidationResult = ValidationResult()
 
-        def validate_attribute(attr_value, type_hint) -> Union[str, None]:
+        def validate_attribute(attr_value, type_hint):
             if not hasattr(type_hint, "__origin__"):
                 if (type(attr_value) != type_hint
                     and not issubclass(type(attr_value), type_hint)
