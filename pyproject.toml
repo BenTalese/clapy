@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clapy"
-version = "2.2.5"
+version = "2.2.6"
 description = "Automated invocation of clean architecture use cases in Python."
 readme = "README.md"
 authors = [{ name = "Ben Talese", email = "ben.talese@gmail.com" }]
