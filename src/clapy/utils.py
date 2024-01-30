@@ -9,7 +9,7 @@ class AttributeChangeTracker(Generic[TAttributeValue]):
 
     def __init__(self, value: Optional[TAttributeValue] = None, has_been_set: Optional[bool] = False):
         self._value = value
-        self._has_been_set = has_been_set
+        self._has_been_set = has_been_set or (value is not None)
 
     def __setattr__(self, name, value):
         if name == '_value':
