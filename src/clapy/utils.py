@@ -2,12 +2,12 @@ from typing import Generic, Type, TypeVar
 
 __all__ = ["AttributeChangeTracker"]
 
-TAttribute = TypeVar('TAttribute')
+TAttributeValue = TypeVar('TAttributeValue')
 
-class AttributeChangeTracker(Generic[TAttribute]):
+class AttributeChangeTracker(Generic[TAttributeValue]):
     __origin__ = Type['AttributeChangeTracker']
 
-    def __init__(self, value: TAttribute):
+    def __init__(self, value: TAttributeValue = None):
         self._value = value
         self._has_been_set = True if value else False
 
@@ -19,7 +19,7 @@ class AttributeChangeTracker(Generic[TAttribute]):
             super().__setattr__(name, value)
 
     @property
-    def value(self) -> TAttribute:
+    def value(self) -> TAttributeValue:
         return self._value
 
     @property
