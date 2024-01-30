@@ -7,7 +7,7 @@ TAttributeValue = TypeVar('TAttributeValue')
 class AttributeChangeTracker(Generic[TAttributeValue]):
     __origin__ = Type['AttributeChangeTracker']
 
-    def __init__(self, value: Optional[TAttributeValue] = None, has_been_set: Optional[bool] = False): # type: ignore
+    def __init__(self, value: Optional[TAttributeValue] = None, has_been_set: Optional[bool] = False):
         self._value = value
         self._has_been_set = has_been_set
 
@@ -20,11 +20,11 @@ class AttributeChangeTracker(Generic[TAttributeValue]):
 
     @property
     def value(self) -> TAttributeValue:
-        return self._value
+        return self._value # type: ignore
 
     @property
     def has_been_set(self) -> bool:
-        return self._has_been_set
+        return self._has_been_set # type: ignore
 
     def __repr__(self) -> str:
         return repr(self._value)
